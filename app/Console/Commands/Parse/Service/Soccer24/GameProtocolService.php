@@ -15,12 +15,13 @@ class GameProtocolService
 {
     public static function start(Game $game)
     {
-        GamePlayers::start($game);
+        $result = GamePlayerService::start($game);
 
-
-        $strProtocol = self::loadProtocolGame($game->soccer24Id);
-        $arrProtocol = self::decodeStrProtocolGame($strProtocol);
-        self::insertProtocol($arrProtocol, $game);
+        if ($result) {
+            $strProtocol = self::loadProtocolGame($game->soccer24Id);
+            $arrProtocol = self::decodeStrProtocolGame($strProtocol);
+            self::insertProtocol($arrProtocol, $game);
+        }
     }
 
     private static function loadProtocolGame(string $idGame): string
@@ -108,7 +109,7 @@ class GameProtocolService
                 Log::info('поле_IB = ' . $item['поле_IB']);
                 Log::info('integration_id = ' . $item['IM_1']);
                 Log::info('integration = ' . $modelIntegration->id);
-                $player = Player::where('id', $modelIntegration->model_id)->where('in_club', true)->first();
+                $player = Player::where('id', $modelIntegration->model_id)->first();
                 $club = Club::where('id', $player->club_id)->first();
                 $type = null;
                 $sectionGame = null;
@@ -167,6 +168,55 @@ class GameProtocolService
                         ]
                     );
                 }
+
+
+                if (isset($item['IK_2'])) {
+                    if ($item['IK_2'] == 'Замена (выходит)') {
+                        $type = 'ZAMENA_S_POLYA';
+                    } elseif ($item['IK_2'] == 'Замена (уходит)') {
+                        $type = 'ZAMENA_NA_POLE';
+                    } elseif ($item['IK_2'] == 'Гол') {
+                        $type = 'GOL';
+                    } elseif ($item['IK_2'] == 'Голевой пас') {
+                        $type = 'GOL_PAS';
+                    } elseif ($item['IK_2'] == 'Автогол') {
+                        $type = 'AVTOGOL';
+                    } elseif ($item['IK_2'] == 'Пенальти') {
+                        $type = 'PENALTI';
+                    } elseif ($item['IK_2'] == 'Желтая карточка') {
+                        $type = 'YELLOW_CARD';
+                    } elseif ($item['IK_2'] == 'Красная карточка') {
+                        $type = 'RED_CARD';
+                    }
+
+                    if ($type != null) {
+                        $minute = str_replace("'", '', $item['поле_IB']);
+                        $minutes = explode('+', $minute);
+                        $minute = (int) $minutes[0] + (isset($minutes[1]) ? (int) $minutes[1] : 0);
+                        $minute = ($minute - 1) . ':' . '59';
+
+                        $event = Event::firstOrCreate(
+                            [
+                                'game_id' => $game->id,
+                                'club_id' => $club->id,
+                                'player_id' => $player->id,
+                                'type' => $type,
+                                'minute' => $minute,
+                                'section_game' => $sectionGame,
+                            ],
+                            [
+                                'game_id' => $game->id,
+                                'club_id' => $club->id,
+                                'player_id' => $player->id,
+                                'type' => $type,
+                                'minute' => $minute,
+                                'section_game' => $sectionGame,
+                                'value' => 1,
+                            ]
+                        );
+                    }
+                }
+
             }
 
             DB::commit();
@@ -174,12 +224,8 @@ class GameProtocolService
             Log::error("Ошибка в методе GameProtocolService->insertProtocol()");
             Log::error($exception->getMessage());
             DB::rollBack();
-            dd($exception->getMessage());
             return false;
         }
-
-
-        dd(111);
 
         return true;
     }

@@ -11,7 +11,7 @@ class Club extends Model
 {
     use HasFactory, SoftDeletes, HasUuids;
 
-    protected $fillable = ['full_name', 'name', 'code', 'slug'];
+    protected $fillable = ['full_name', 'name', 'code', 'slug', 'logo', 'country_id'];
 
     public function getSoccer24IdAttribute()
     {

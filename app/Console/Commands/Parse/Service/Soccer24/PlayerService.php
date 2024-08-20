@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands\Parse\Service\Soccer24;
 
+use App\Dto\PlayerDto;
 use App\Models\Club;
 use App\Models\Country;
 use App\Models\ModelIntegration;
@@ -13,126 +14,71 @@ use Symfony\Component\DomCrawler\Crawler;
 
 class PlayerService
 {
-    public static function start(Club $club)
+    private string $html;
+    private string $slug;
+    private string $id;
+    private PlayerDto $playerDto;
+    private Player $modelPlayer;
+
+    public function __construct(string $slug, string $id)
     {
-        $strPlayers = self::loadPlayersGame($club);
-        $arrPlayers = self::decodeStrPlayersGame($strPlayers);
-        self::insertPlayers($arrPlayers, $club);
+        $this->slug = $slug;
+        $this->id = $id;
     }
 
-    private static function loadPlayersGame(Club $club): string
+    public function downloadHtml(): PlayerService
     {
         $result = Http::withoutVerifying()
-            ->get("https://www.soccer24.com/ru/team/{$club->slug}/{$club->soccer24Id}/squad/");
+            ->get("https://www.soccer24.com/ru/player/{$this->slug}/{$this->id}/");
 
-        return $result->body();
+        $this->html = $result->body();
+
+        return $this;
     }
 
-    private static function decodeStrPlayersGame(string $str): array
+    public function parseHtml(): PlayerService
     {
-        $crawler = new Crawler($str);
-        $players = [];
-        $crawler->filter('#overall-all-table')->each(function (Crawler $node) use (&$players) {
-            $node->filter('.lineupTable--soccer')->each(function (Crawler $node) use (&$players) {
-                if ($node->filter('.lineupTable__title')->text() != 'Тренер') {
-                    $node->filter('.lineupTable__row')->each(function (Crawler $node) use (&$players) {
-                        $name = $node->filter('a.lineupTable__cell--name')->text();
-                        $countryName = $node->filter('.lineupTable__cell--flag')->attr('title');
-                        $href = $node->filter('a.lineupTable__cell--name')->attr('href');
-                        $number = $node->filter('.lineupTable__cell--jersey')->text();
+        $crawler = new Crawler($this->html);
+        $imageSrc = $crawler->filter('._player_bnfqw_15 img')->attr('src');
+        $fioPlayer = $crawler->filter('._webTypeHeading02_1pm1i_12')->text();
+        $nodeCommand = $crawler->filter('._secondary_1cy23_33');
+        $command = $nodeCommand->count() > 0 ? $nodeCommand->attr('title') : null;
+        $urlCommand =  $nodeCommand->count() > 0 ? $nodeCommand->attr('href') : null;
+        $birthday = str_replace(
+            ['(', ')'],
+            '',
+            $crawler->filter('.playerInfoItem')->eq(0)
+                ->filter('._simpleText_zkkvt_4')->eq(2)
+                ->text()
+        );
+        $dataCommand = explode('/', $urlCommand);
+        $slugCommand = $urlCommand != null ? $dataCommand[3] : null;
+        $idCommand = $urlCommand != null ? $dataCommand[4] : null;
+        $player = [
+            'imageSrc' => $imageSrc,
+            'fio' => $fioPlayer,
+            'id' => $this->id,
+            'slug' => $this->slug,
+            'birthday' => $birthday,
+            'nameCommand' => $command,
+            'slugCommand' => $slugCommand,
+            'idCommand' => $idCommand,
+        ];
+        $this->playerDto = new PlayerDto($player);
 
-                        preg_match('/\/ru\/player\/([\w-]+)\/([\w-]+)\//', $href, $matches);
-                        $slug = $matches[1];
-                        $id = $matches[2];
-
-                        $players[] = [
-                            'name' => $name,
-                            'countryName' => $countryName,
-                            'href' => $href,
-                            'number' => $number,
-                            'slug' => $slug,
-                            'id' => $id,
-                        ];
-                    });
-                }
-            });
-        });
-
-        return $players;
+        return $this;
     }
 
-    private static function insertPlayers(array $players, Club $club): bool
+    public function insert(): PlayerService
     {
-        $oldListPlayers = Player::where('club_id', $club->id)->get();
+        $service = new \App\Service\PlayerService();
+        $this->modelPlayer = $service->create($this->playerDto);
 
-        foreach ($players as $player) {
-            $country = Country::firstOrCreate(
-                [
-                    'name' => $player['countryName']
-                ],
-                [
-                    'name' => $player['countryName']
-                ]
-            );
+        return $this;
+    }
 
-            try {
-                DB::beginTransaction();
-
-                $playerModel = Player::updateOrCreate(
-                    [
-                        'fio' => $player['name'],
-                        'slug' => $player['slug'],
-                        'country_id' => $country->id,
-                        'club_id' => $club->id,
-                    ],
-                    [
-                        'fio' => $player['name'],
-                        'slug' => $player['slug'],
-                        'country_id' => $country->id,
-                        'club_id' => $club->id,
-                        'number' => $player['number'] == '' ? null : $player['number'],
-                        'in_club' => true,
-                    ]
-                );
-
-                $modelIntegration = ModelIntegration::updateOrCreate(
-                    [
-                        'model' => 'player',
-                        'model_id' => $playerModel->id,
-                        'type_integration' => 'soccer_24',
-                    ],
-                    [
-                        'model' => 'player',
-                        'model_id' => $playerModel->id,
-                        'type_integration' => 'soccer_24',
-                        'integration_id' => $player['id'],
-                    ]
-                );
-
-                dump($modelIntegration->id);
-
-                if ($modelIntegration == null) {
-                    dump("player: " . $playerModel->fio . " model_id: " . $playerModel->id);
-                }
-
-                $oldListPlayers = $oldListPlayers->reject(function ($player) use ($playerModel) {
-                    return $player->id == $playerModel->id;
-                });
-
-                DB::commit();
-            } catch (\Exception $exception) {
-                Log::error("Ошибка в методе PlayerService->insertPlayers()");
-                Log::error($exception->getMessage());
-                DB::rollBack();
-                return false;
-            }
-        }
-
-        foreach ($oldListPlayers as $player) {
-            $player->in_club = false;
-            $player->save();
-        }
-
-        return true;
+    public function getPlayer(): Player
+    {
+        return $this->modelPlayer;
     }
 }

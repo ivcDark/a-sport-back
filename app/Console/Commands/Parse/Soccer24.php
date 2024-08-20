@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands\Parse;
 
+use App\Console\Commands\Parse\Service\Soccer24\ClubPlayerService;
 use App\Console\Commands\Parse\Service\Soccer24\ClubService;
 use App\Console\Commands\Parse\Service\Soccer24\GameProtocolService;
 use App\Console\Commands\Parse\Service\Soccer24\GameResultService;
@@ -27,6 +28,7 @@ class Soccer24 extends Command
     {--statistic : Загружать статистику}
     {--game_result : Загружать матчи}
     {--player : Загружать игроков}
+    {--club_player : Составы игроков из команды}
     {--protocol : Протоколы матчей}';
 
     /**
@@ -43,7 +45,7 @@ class Soccer24 extends Command
     {
         $countryModel = Country::where('name', 'Россия')->first();
         $leagueModel = League::where('country_id', $countryModel->id)->where('name', 'Премьер-лига')->first();
-//        $leagueModel = League::where('country_id', $countryModel->id)->where('name', 'ФНЛ')->first();
+        $leagueModel = League::where('country_id', $countryModel->id)->where('name', 'ФНЛ')->first();
         $seasonModel = Season::where('title', '2023/2024')->first();
         $leagueSeasonModel = LeagueSeason::where('league_id', $leagueModel->id)->where('season_id', $seasonModel->id)->first();
 
@@ -82,11 +84,22 @@ class Soccer24 extends Command
         } elseif ($this->option('player')) {
             $this->info('Начинаем загружать игроков из матчей');
 
-            $clubLeagues = ClubLeague::where('league_season_id', $leagueSeasonModel->id)->get();
+            $slug = 'palmer-cole';
+            $id = 'h8agbDt7';
 
-            foreach ($clubLeagues as $clubLeague) {
-                $club = Club::where('id', $clubLeague->club_id)->first();
-                PlayerService::start($club);
+            $service = new PlayerService($slug, $id);
+            $service->downloadHtml()->parseHtml()->insert();
+
+            $this->info('Загрузка игроков завершена');
+            return 1;
+        } elseif($this->option('club_player')) {
+            $this->info('Начинаем загружать игроков из клубов');
+
+            $leagueClubs = ClubLeague::where('league_season_id', $leagueSeasonModel->id)->get();
+
+            foreach ($leagueClubs as $leagueClub) {
+                $club = Club::where('id', $leagueClub->club_id)->first();
+                ClubPlayerService::start($club);
             }
 
             $this->info('Загрузка игроков завершена');
@@ -95,7 +108,7 @@ class Soccer24 extends Command
             $this->info('Начинаем загружать протоколы матчей');
 
             $games = Game::where('league_season_id', $leagueSeasonModel->id)->get();
-            $games = Game::where('id', '9ca56f8c-d7e0-4eb2-911b-451d626b0965')->get();
+//            $games = Game::where('id', '9ca56f8c-d7e0-4eb2-911b-451d626b0965')->get();
 
             foreach ($games as $game) {
                 GameProtocolService::start($game);

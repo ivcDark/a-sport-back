@@ -11,5 +11,5 @@ class Country extends Model
 {
     use HasFactory, SoftDeletes, HasUuids;
 
-    protected $fillable = ['full_name', 'name', 'code'];
+    protected $fillable = ['full_name', 'name', 'code', 'logo'];
 }
