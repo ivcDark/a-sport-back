@@ -29,7 +29,14 @@ class Club extends Command
      */
     public function handle()
     {
-        $leagues = \App\Models\League::all();
+        $jsonLeagues = file_get_contents('leagues.log');
+        $arrLeagues = json_decode($jsonLeagues, true);
+
+//        $leagues = \App\Models\League::all();
+//        dump($leagues->count());
+
+        $leagues = \App\Models\League::whereNotIn('id', $arrLeagues)->get();
+//        dd($leagues->count());
 
         foreach ($leagues as $league) {
             $this->info("Лига: " . $league->name);
