@@ -12,4 +12,9 @@ class Season extends Model
     use HasFactory, SoftDeletes, HasUuids;
 
     protected $fillable = ['title', 'code'];
+
+    public function scopeCurrent($query)
+    {
+        return $query->orderBy('title', 'desc')->first();
+    }
 }

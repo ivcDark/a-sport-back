@@ -3,15 +3,16 @@
 namespace App\Service;
 
 use App\Dto\CountryDto;
+use App\Models\Country;
 use App\Models\ModelIntegration;
 use Illuminate\Support\Facades\DB;
 
 class CountryService
 {
-    private string $typeIntegration;
+    private ?string $typeIntegration;
     private string $nameModel;
 
-    public function __construct($typeIntegration)
+    public function __construct($typeIntegration = null)
     {
         $this->typeIntegration = $typeIntegration;
         $this->nameModel = 'country';
@@ -64,5 +65,23 @@ class CountryService
 
         return $country;
 
+    }
+
+    public function get($params): \Illuminate\Contracts\Pagination\LengthAwarePaginator
+    {
+        $countries = Country::query();
+
+        if (isset($params['ids'])) {
+            $ids = explode(',', $params['ids']);
+            $countries = $countries->whereIn('id', $ids);
+        }
+
+        if (isset($params['name'])) {
+            $countries = $countries->where('name', 'like', "%{$params['name']}%");
+        }
+
+        $limit = isset($params['limit']) && $params['limit'] > 0 ? $params['limit'] : 20;
+
+        return $countries->paginate($limit);
     }
 }

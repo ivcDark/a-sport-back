@@ -4,16 +4,19 @@ namespace App\Service;
 
 use App\Dto\ClubDto;
 use App\Dto\CountryDto;
+use App\Models\Club;
 use App\Models\ClubLeague;
+use App\Models\LeagueSeason;
 use App\Models\ModelIntegration;
+use App\Models\Season;
 use Illuminate\Support\Facades\DB;
 
 class ClubService
 {
-    private string $typeIntegration;
+    private ?string $typeIntegration;
     private string $nameModel;
 
-    public function __construct($typeIntegration)
+    public function __construct($typeIntegration = null)
     {
         $this->typeIntegration = $typeIntegration;
         $this->nameModel = 'club';
@@ -82,5 +85,36 @@ class ClubService
 
         return $club;
 
+    }
+
+    public function get($params): \Illuminate\Contracts\Pagination\LengthAwarePaginator
+    {
+        $clubs = Club::query();
+
+        if (isset($params['countryIds'])) {
+            $ids = explode(',', $params['countryIds']);
+            $clubs = $clubs->whereIn('country_id', $ids);
+        }
+
+        if (isset($params['leagueId'])) {
+            $season = isset($params['seasonId']) ? Season::find($params['seasonId']) : Season::current();
+            $leagueSeason = LeagueSeason::where('league_id', $params['leagueId'])->where('season_id', $season->id)->first();
+            $leagueSeasonClubsIds = ClubLeague::where('league_season_id', $leagueSeason->id)->pluck('club_id')->toArray();
+
+            $clubs = $clubs->whereIn('id', $leagueSeasonClubsIds);
+        }
+
+        if (isset($params['clubIds'])) {
+            $ids = explode(',', $params['clubIds']);
+            $clubs = $clubs->whereIn('id', $ids);
+        }
+
+        if (isset($params['clubName'])) {
+            $clubs = $clubs->where('name', 'like', "%{$params['clubName']}%");
+        }
+
+        $limit = isset($params['limit']) && $params['limit'] > 0 ? $params['limit'] : 20;
+
+        return $clubs->paginate($limit);
     }
 }
