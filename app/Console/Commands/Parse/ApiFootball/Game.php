@@ -1,0 +1,89 @@
+<?php
+
+namespace App\Console\Commands\Parse\ApiFootball;
+
+use App\Dto\ClubDto;
+use App\Dto\GameDto;
+use App\Dto\GameResultDto;
+use App\Dto\PlayerDto;
+use App\Models\LeagueSeason;
+use App\Models\ModelIntegration;
+use App\Models\Season;
+use App\Service\GameResultService;
+use App\Service\GameService;
+use Illuminate\Console\Command;
+use Illuminate\Support\Str;
+
+class Game extends Command
+{
+    /**
+     * The name and signature of the console command.
+     *
+     * @var string
+     */
+    protected $signature = 'api_football:game';
+
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Парсинг api_football - матчи';
+
+    /**
+     * Execute the console command.
+     */
+    public function handle()
+    {
+        $dates = [
+            'from' => '2024-07-01',
+            'to'   => '2024-08-24'
+        ];
+        $leagueModel = \App\Models\League::where('id', '9cc1a42e-4363-4f4d-babb-5881ed14a528')->first(); // РФПЛ
+
+        $this->info("Матчи с: {$dates['from']} по {$dates['to']}, лига: {$leagueModel->name}");
+
+        $parse = new \App\Parse\ApiFootball\Game($leagueModel->apiFootballId, $dates);
+        $games = $parse->start()->toArray();
+
+        if (isset($games['error'])) {
+            $this->error($games['message']);
+            return false;
+        }
+
+        foreach ($games as $item) {
+            if ($item['match_status'] == 'Finished') {
+                $seasonModel = Season::where('title', $item['league_year'])->first();
+                $leagueSeasonModel = LeagueSeason::where('season_id', $seasonModel->id)->where('league_id', $leagueModel->id)->first();
+                $modelIntegration = ModelIntegration::where('model', 'club')->where('type_integration', 'apiFootball')->where('integration_id', $item['match_hometeam_id'])->first();
+                $clubHomeModel = \App\Models\Club::where('id', $modelIntegration->model_id)->first();
+                $modelIntegration = ModelIntegration::where('model', 'club')->where('type_integration', 'apiFootball')->where('integration_id', $item['match_awayteam_id'])->first();
+                $clubAwayModel = \App\Models\Club::where('id', $modelIntegration->model_id)->first();
+                $timeStart = strtotime($item['match_date'] . " " . $item['match_time']);
+
+                $dataToGameDto = [
+                    'clubHomeId'     => $clubHomeModel->id,
+                    'clubGuestId'    => $clubAwayModel->id,
+                    'leagueSeasonId' => $leagueSeasonModel->id,
+                    'tour'           => $item['match_round'],
+                    'timeStart'      => $timeStart,
+                    'apiId'          => $item['match_id'],
+                ];
+
+                $dtoGame = new GameDto($dataToGameDto);
+                $gameModel = (new GameService('apiFootball'))->updateOrCreate($dtoGame);
+
+                $dataToGameResultDto = [
+                    'gameId' => $gameModel->id,
+                    'homeGoals' => $item['match_hometeam_score'],
+                    'guestGoals' => $item['match_awayteam_score'],
+                ];
+
+                $dtoGameResult = new GameResultDto($dataToGameResultDto);
+                $gameResultModel = (new GameResultService('apiFootball'))->updateOrCreate($dtoGameResult);
+            }
+        }
+
+        return true;
+    }
+}
