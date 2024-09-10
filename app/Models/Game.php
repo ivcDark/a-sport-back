@@ -22,4 +22,24 @@ class Game extends Model
 
         return $modelIntegration != null ? $modelIntegration->integration_id : null;
     }
+
+    public function clubHome()
+    {
+        return $this->belongsTo(Club::class, 'club_home_id', 'id');
+    }
+
+    public function clubGuest()
+    {
+        return $this->belongsTo(Club::class, 'club_guest_id', 'id');
+    }
+
+    public function leagueSeason()
+    {
+        return $this->belongsTo(LeagueSeason::class, 'league_season_id', 'id');
+    }
+
+    public function result()
+    {
+        return $this->hasOne(GameResult::class, 'game_id', 'id');
+    }
 }

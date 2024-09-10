@@ -21,4 +21,14 @@ class LeagueSeason extends Model
 
         return $modelIntegration != null ? $modelIntegration->integration_id : null;
     }
+
+    public function league()
+    {
+        return $this->belongsTo(League::class, 'league_id', 'id');
+    }
+
+    public function season()
+    {
+        return $this->belongsTo(Season::class, 'season_id', 'id');
+    }
 }
