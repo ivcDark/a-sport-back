@@ -3,14 +3,15 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\GameRequest;
 use App\Http\Resources\GameResource;
-use App\Models\Game;
-use Illuminate\Http\Request;
+use App\Service\GameService;
 
 class GameController extends Controller
 {
-    public function get(Request $request)
+    public function get(GameRequest $request)
     {
-        return GameResource::collection(Game::orderBy('time_start', 'desc')->get())->additional(['status' => true]);
+        $data = $request->validated();
+        return GameResource::collection((new GameService())->get($data))->additional(['status' => true]);
     }
 }
