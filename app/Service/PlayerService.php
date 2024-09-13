@@ -2,9 +2,8 @@
 
 namespace App\Service;
 
-use App\Dto\ClubDto;
-use App\Dto\CountryDto;
 use App\Dto\PlayerDto;
+use App\Models\Club;
 use App\Models\ModelIntegration;
 use App\Models\Player;
 use App\Models\PlayerClub;
@@ -12,10 +11,10 @@ use Illuminate\Support\Facades\DB;
 
 class PlayerService
 {
-    private string $typeIntegration;
+    private ?string $typeIntegration;
     private string $nameModel;
 
-    public function __construct($typeIntegration)
+    public function __construct($typeIntegration = null)
     {
         $this->typeIntegration = $typeIntegration;
         $this->nameModel = 'player';
@@ -89,5 +88,23 @@ class PlayerService
 
         return $player;
 
+    }
+
+    public function get(array $filters)
+    {
+        $players = Player::query();
+
+        if (isset($filters['club_id'])) {
+            $club = Club::where('id', $filters['club_id'])->first();
+            $players = $players->whereIn('id', $club->players->pluck('id')->toArray());
+        }
+
+        if (isset($filters['id'])) {
+            $players = $players->where('id', $filters['id']);
+        }
+
+        $limit = isset($filters['limit']) && $filters['limit'] > 0 ? $filters['limit'] : 20;
+
+        return $players->paginate($limit);
     }
 }

@@ -78,6 +78,8 @@ class GameService
 
     public function get(array $filters)
     {
+        $limit = isset($filters['limit']) && $filters['limit'] > 0 ? $filters['limit'] : 20;
+
         return Game::query()
             ->when(isset($filters['tour']), function ($query) use ($filters) {
                 $query->where('tour', $filters['tour']);
@@ -105,6 +107,6 @@ class GameService
                 $query->whereIn('league_season_id', $leagueSeasonIds);
             })
             ->orderBy('time_start', 'desc')
-            ->get();
+            ->paginate($limit);
     }
 }

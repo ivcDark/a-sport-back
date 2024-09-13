@@ -22,4 +22,9 @@ class Club extends Model
 
         return $modelIntegration != null ? $modelIntegration->integration_id : null;
     }
+
+    public function players()
+    {
+        return $this->belongsToMany(Player::class, 'player_clubs');
+    }
 }
