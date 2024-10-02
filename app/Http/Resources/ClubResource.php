@@ -15,9 +15,10 @@ class ClubResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'   => $this->id,
-            'name' => $this->name,
-            'logo' => $this->logo
+            'id'     => $this->id,
+            'name'   => $this->name,
+            'logo'   => $this->logo,
+            'league' => new LeagueResource($this->league)
         ];
     }
 }

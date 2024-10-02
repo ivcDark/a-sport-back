@@ -22,4 +22,9 @@ class League extends Model
 
         return $modelIntegration != null ? $modelIntegration->integration_id : null;
     }
+
+    public function country()
+    {
+        return $this->belongsTo(Country::class);
+    }
 }
