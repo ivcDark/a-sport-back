@@ -19,7 +19,7 @@ class Game
 
     public function start(): static
     {
-        $url = "https://apiv3.apifootball.com/?action=get_events&from={$this->dates['from']}&to={$this->dates['to']}&league_id={$this->apiLeagueId}&APIkey=9c29b5bad926929a9ce145d6b5c082097c6d02c89172fbb0252bc4860b0c32ae&timezone=UTC";
+        $url = "https://apiv3.apifootball.com/?action=get_events&from={$this->dates['from']}&to={$this->dates['to']}&league_id={$this->apiLeagueId}&APIkey=" . env('API_KEY_API_FOOTBALL') . "&timezone=UTC";
         $result = Http::withoutVerifying()
             ->get($url);
 

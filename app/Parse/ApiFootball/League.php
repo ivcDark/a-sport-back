@@ -11,7 +11,7 @@ class League
     public function start(): static
     {
         $result = Http::withoutVerifying()
-            ->get("https://apiv3.apifootball.com/?action=get_leagues&APIkey=9c29b5bad926929a9ce145d6b5c082097c6d02c89172fbb0252bc4860b0c32ae");
+            ->get("https://apiv3.apifootball.com/?action=get_leagues&APIkey=" . env('API_KEY_API_FOOTBALL'));
 
         $this->json = $result->body();
 

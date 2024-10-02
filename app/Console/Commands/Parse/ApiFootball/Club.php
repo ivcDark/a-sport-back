@@ -36,6 +36,7 @@ class Club extends Command
 //        dump($leagues->count());
 
         $leagues = \App\Models\League::whereNotIn('id', $arrLeagues)->get();
+        $leagues = \App\Models\League::where('id', '9cc1a42e-4363-4f4d-babb-5881ed14a528')->get();
 //        dd($leagues->count());
 
         foreach ($leagues as $league) {

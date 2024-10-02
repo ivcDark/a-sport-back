@@ -38,14 +38,14 @@ class Game extends Command
     public function handle()
     {
         $dates = [
-            'from' => '2024-01-01',
-            'to'   => '2024-09-31'
+            'from' => '2024-09-01',
+            'to'   => '2025-12-31'
         ];
         $leagueModel = \App\Models\League::where('id', '9cc1a42e-4363-4f4d-babb-5881ed14a528')->first(); // РФПЛ
 
         $this->info("Матчи с: {$dates['from']} по {$dates['to']}, лига: {$leagueModel->name}");
 
-        $parse = new \App\Parse\ApiFootball\Game(0, $dates);
+        $parse = new \App\Parse\ApiFootball\Game($leagueModel->apiFootballId, $dates);
         $games = $parse->start()->toArray();
 
         if (isset($games['error'])) {
@@ -119,23 +119,29 @@ class Game extends Command
                                     ->where('integration_id', $infoPlayer['player_key'])
                                     ->first();
 
-                                $dataToGamePlayerDto = [
-                                    'gameId'         => $gameModel->id,
-                                    'playerId'       => $modelIntegration->model_id,
-                                    'clubId'         => $typeTeam == 'home' ? $clubHomeModel->id : $clubAwayModel->id,
-                                    'isStartGroup'   => $typeGroup == 'starting_lineups',
-                                    'isReserveGroup' => $typeGroup == 'substitutes',
-                                    'isInjuredGroup' => false,
-                                    'isBest'         => false,
-                                    'rating'         => null,
-                                ];
+                                if ($modelIntegration != null) {
+                                    $dataToGamePlayerDto = [
+                                        'gameId'         => $gameModel->id,
+                                        'playerId'       => $modelIntegration->model_id,
+                                        'clubId'         => $typeTeam == 'home' ? $clubHomeModel->id : $clubAwayModel->id,
+                                        'isStartGroup'   => $typeGroup == 'starting_lineups',
+                                        'isReserveGroup' => $typeGroup == 'substitutes',
+                                        'isInjuredGroup' => false,
+                                        'isBest'         => false,
+                                        'rating'         => null,
+                                    ];
 
-                                $dtoGamePlayer = new GamePlayerDto($dataToGamePlayerDto);
-                                $gamePlayerModel = (new GamePlayerService('apiFootball'))->updateOrCreate($dtoGamePlayer);
+                                    $dtoGamePlayer = new GamePlayerDto($dataToGamePlayerDto);
+                                    $gamePlayerModel = (new GamePlayerService('apiFootball'))->updateOrCreate($dtoGamePlayer);
 
-                                if ($gamePlayerModel != null) {
-                                    $this->info('Создали игрока в матче (GamePlayer) ' . $gamePlayerModel->id);
+                                    if ($gamePlayerModel != null) {
+                                        $this->info('Создали игрока в матче (GamePlayer) ' . $gamePlayerModel->id);
+                                    }
+                                } else {
+                                    $this->error("Игрока нет в базе. Player_key: {$infoPlayer['player_key']} FIO: {$infoPlayer['lineup_player']}");
                                 }
+
+
                             }
                         }
                     }
