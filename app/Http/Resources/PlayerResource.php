@@ -23,7 +23,7 @@ class PlayerResource extends JsonResource
             'birthday'   => Carbon::createFromTimestamp($this->birthday)->addHour()->format('d.m.Y'),
             'position'   => $this->position,
             'avatar'     => $this->image,
-            'club'       => ClubResource::collection($this->clubs),
+            'parent'       => ClubResource::collection($this->clubs),
         ];
     }
 }

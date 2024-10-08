@@ -18,7 +18,7 @@ class ClubResource extends JsonResource
             'id'     => $this->id,
             'name'   => $this->name,
             'logo'   => $this->logo,
-            'league' => new LeagueResource($this->league)
+            'parent' => new LeagueResource($this->league)
         ];
     }
 }

@@ -18,7 +18,7 @@ class LeagueResource extends JsonResource
             'id'      => $this->id,
             'name'    => $this->name,
             'logo'    => $this->logo,
-            'country' => new CountryResource($this->country)
+            'parent' => new CountryResource($this->country)
         ];
     }
 }
