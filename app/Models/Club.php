@@ -33,6 +33,16 @@ class Club extends Model
         return $this->belongsTo(Country::class);
     }
 
+    public function leagueSeasons()
+    {
+        return $this->belongsToMany(LeagueSeason::class, 'club_leagues', 'club_id', 'league_season_id');
+    }
+
+    public function leaguesInSeason(string $seasonId)
+    {
+        return $this->leagueSeasons()->where('season_id', $seasonId)->with('league');
+    }
+
     public function league()
     {
         return $this->belongsTo(League::class);

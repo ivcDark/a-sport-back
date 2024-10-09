@@ -90,6 +90,7 @@ class ClubService
     public function get($params): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
         $clubs = Club::query();
+        $season = isset($params['seasonId']) ? Season::find($params['seasonId']) : Season::current();
 
         if (isset($params['countryIds'])) {
             $ids = explode(',', $params['countryIds']);
@@ -97,7 +98,6 @@ class ClubService
         }
 
         if (isset($params['leagueId'])) {
-            $season = isset($params['seasonId']) ? Season::find($params['seasonId']) : Season::current();
             $leagueSeason = LeagueSeason::where('league_id', $params['leagueId'])->where('season_id', $season->id)->first();
             $leagueSeasonClubsIds = ClubLeague::where('league_season_id', $leagueSeason->id)->pluck('club_id')->toArray();
 
@@ -115,6 +115,13 @@ class ClubService
 
         $limit = isset($params['limit']) && $params['limit'] > 0 ? $params['limit'] : 20;
 
-        return $clubs->paginate($limit);
+        $paginatedClubs = $clubs->paginate($limit);
+
+        $paginatedClubs->getCollection()->transform(function ($club) use ($season) {
+            $club->use_season_id = $season->id;
+            return $club;
+        });
+
+        return $paginatedClubs;
     }
 }
