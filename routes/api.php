@@ -18,3 +18,4 @@ Route::get('clubs', [\App\Http\Controllers\Api\ClubController::class, 'get']);
 Route::get('seasons', [\App\Http\Controllers\Api\SeasonController::class, 'get']);
 Route::get('games', [\App\Http\Controllers\Api\GameController::class, 'get']);
 Route::get('players', [\App\Http\Controllers\Api\PlayerController::class, 'get']);
+Route::get('filters', [\App\Http\Controllers\Api\FilterController::class, 'get']);

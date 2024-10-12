@@ -29,8 +29,8 @@ class CreateGuid extends Command
     public function handle()
     {
         if ($this->option('count')) {
-            for ($i = 0; $i <= $this->option('count'); $i++) {
-                $this->info(Str::uuid());
+            for ($i = 1; $i <= $this->option('count'); $i++) {
+                $this->info("$i) " . Str::uuid());
             }
         } else {
             $this->info(Str::uuid());

@@ -64,7 +64,6 @@ class CountryService
         }
 
         return $country;
-
     }
 
     public function get($params): \Illuminate\Contracts\Pagination\LengthAwarePaginator
@@ -79,6 +78,14 @@ class CountryService
         if (isset($params['name'])) {
             $countries = $countries->where('name', 'like', "%{$params['name']}%");
         }
+
+        if (isset($params['type'])) {
+            if ($params['type'] == 'only_country') {
+                $countries = $countries->where('sort', 99);
+            }
+        }
+
+        $countries = $countries->orderBy('sort')->orderBy('name');
 
         $limit = isset($params['limit']) && $params['limit'] > 0 ? $params['limit'] : 20;
 

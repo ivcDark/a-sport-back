@@ -131,6 +131,11 @@ return [
             'driver' => 'single',
             'path' => storage_path('logs/apiFootball.log'),
         ],
+
+        'Betcity' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/Betcity.log'),
+        ],
     ],
 
 ];
