@@ -13,6 +13,11 @@ class Season extends Model
 
     protected $fillable = ['title', 'code'];
 
+    public function leagueSeasons(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(LeagueSeason::class);
+    }
+
     public function scopeCurrent($query)
     {
         return $query->orderBy('title', 'desc')->first();

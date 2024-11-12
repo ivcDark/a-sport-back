@@ -43,8 +43,8 @@ class Game extends Command
     public function handle()
     {
         $dates = [
-            'from' => '2024-07-01',
-            'to'   => '2024-10-31'
+            'from' => '2024-10-10',
+            'to'   => '2024-11-31'
         ];
         $leagueModel = \App\Models\League::where('id', '9cc1a42e-4363-4f4d-babb-5881ed14a528')->first(); // РФПЛ
 

@@ -18,7 +18,7 @@ class ClubResource extends JsonResource
             'id'     => $this->id,
             'name'   => $this->name,
             'logo'   => $this->logo,
-            'parent' => LeagueResource::collection($this->leaguesInSeason($this->use_season_id)->get()->pluck('league'))
+            'parent' => isset($this->use_season_id) ? LeagueResource::collection($this->leaguesInSeason($this->use_season_id)->get()->pluck('league')) : null
         ];
     }
 }

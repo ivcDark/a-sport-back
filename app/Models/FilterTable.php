@@ -11,4 +11,14 @@ class FilterTable extends Model
     use HasFactory, HasUuids;
 
     protected $fillable = ['name' , 'type'];
+
+    public function scopeSectionGame($query)
+    {
+        return $query->where('type', 'section_game');
+    }
+
+    public function scopeAllGame($query)
+    {
+        return $query->where('name', 'Full game');
+    }
 }

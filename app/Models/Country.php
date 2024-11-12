@@ -12,4 +12,9 @@ class Country extends Model
     use HasFactory, SoftDeletes, HasUuids;
 
     protected $fillable = ['full_name', 'name', 'code', 'logo'];
+
+    public function leagues(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(League::class);
+    }
 }
