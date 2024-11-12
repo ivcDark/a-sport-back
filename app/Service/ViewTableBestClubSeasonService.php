@@ -104,7 +104,7 @@ class ViewTableBestClubSeasonService
             $result = $result->where('section_game_id', $sectionGameAllGame->id);
         }
 
-        $order = $filters['order'] ?? 'points';
+        $order = $filters['order'] ? FilterTable::find()->sub_name : 'points';
         $limit = isset($filters['limit']) && $filters['limit'] > 0 ? $filters['limit'] : 10;
 
         return $result->orderBy($order)->limit($limit)->get();
