@@ -21,4 +21,9 @@ class FilterTable extends Model
     {
         return $query->where('name', 'Full game');
     }
+
+    public function scopeHomeGuest($query)
+    {
+        return $query->where('type', 'home_guest');
+    }
 }
