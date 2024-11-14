@@ -12,4 +12,5 @@ Route::get('games', [\App\Http\Controllers\Api\GameController::class, 'get']);
 Route::get('players', [\App\Http\Controllers\Api\PlayerController::class, 'get']);
 Route::get('filters', [\App\Http\Controllers\Api\FilterController::class, 'get']);
 Route::get('table/best-clubs-season', [\App\Http\Controllers\Api\ViewTableController::class, 'bestClubSeason']);
+Route::get('table/best-player-season', [\App\Http\Controllers\Api\ViewTableController::class, 'bestPlayerSeason']);
 Route::get('table/top-game', [\App\Http\Controllers\Api\ViewTableController::class, 'topGame']);

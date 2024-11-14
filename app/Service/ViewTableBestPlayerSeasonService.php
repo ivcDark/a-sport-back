@@ -69,7 +69,7 @@ class ViewTableBestPlayerSeasonService
 
     public function get(array $filters)
     {
-        $result = ViewTableBestClubsSeason::query();
+        $result = ViewTableBestPlayerSeason::query();
 
         if (isset($filters['country_id'])) {
             $leagues = Country::with('leagues')
@@ -97,16 +97,16 @@ class ViewTableBestPlayerSeasonService
             $result = $result->where('season_id', 'cc211e20-81a4-4a29-824a-0d1b6958ae36'); //2024/2025
         }
 
-        if (isset($filters['section_game_id'])) {
-            $result = $result->where('section_game_id', $filters['section_game']);
+        if (isset($filters['type_game_id'])) {
+            $result = $result->where('type_game_id', $filters['type_game_id']);
         } else {
-            $sectionGameAllGame = FilterTable::sectionGame()->allGame()->first();
-            $result = $result->where('section_game_id', $sectionGameAllGame->id);
+            $typeGame = FilterTable::homeGuestOnlyAll()->first();
+            $result = $result->where('type_game_id', $typeGame->id);
         }
 
-        $order = $filters['order'] ? FilterTable::find()->sub_name : 'points';
+        $order = isset($filters['order']) ? FilterTable::find($filters['order'])->sub_name : 'goals';
         $limit = isset($filters['limit']) && $filters['limit'] > 0 ? $filters['limit'] : 10;
 
-        return $result->orderBy($order)->limit($limit)->get();
+        return $result->orderByDesc($order)->limit($limit)->get();
     }
 }

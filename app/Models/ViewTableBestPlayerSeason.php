@@ -25,4 +25,24 @@ class ViewTableBestPlayerSeason extends Model
         'red_cards',
         'rating',
     ];
+
+    public function club(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Club::class);
+    }
+
+    public function league(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(League::class);
+    }
+
+    public function sectionGame(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(FilterTable::class, 'type_game_id', 'id');
+    }
+
+    public function player(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Player::class);
+    }
 }

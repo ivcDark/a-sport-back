@@ -26,4 +26,9 @@ class FilterTable extends Model
     {
         return $query->where('type', 'home_guest');
     }
+
+    public function scopeHomeGuestOnlyAll($query)
+    {
+        return $query->homeGuest()->where('name', 'All');
+    }
 }
