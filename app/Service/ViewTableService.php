@@ -30,7 +30,7 @@ class ViewTableService
                 'players.image as player_image',
                 'clubs.name as club_name',
                 'view_table_best_player_seasons.goals as player_goals',
-                'view_table_best_clubs_seasons.goals_scored as team_goals',
+                'view_table_best_clubs_seasons.goals_scored as club_goals',
                 DB::raw('ROUND(COALESCE(view_table_best_player_seasons.goals * 100.0 / NULLIF(view_table_best_clubs_seasons.goals_scored, 0), 0), 1) as goals_ratio_percent')
             ])
             ->leftJoin('view_table_best_clubs_seasons', 'view_table_best_clubs_seasons.club_id', '=', 'view_table_best_player_seasons.club_id')
@@ -42,8 +42,9 @@ class ViewTableService
             ->where('view_table_best_player_seasons.league_season_id', $leagueSeasonModel->id)
             ->orderByDesc('goals_ratio_percent')
             ->orderByDesc('player_goals')
-            ->orderByDesc('team_goals')
+            ->orderByDesc('club_goals')
             ->orderBy('player_name')
+            ->limit(10)
             ->get();
     }
 }

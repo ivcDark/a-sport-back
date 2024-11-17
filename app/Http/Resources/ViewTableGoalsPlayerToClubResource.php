@@ -19,7 +19,7 @@ class ViewTableGoalsPlayerToClubResource extends JsonResource
             'player_image'        => $this->player_image,
             'club_name'           => $this->club_name,
             'player_goals'        => $this->player_goals,
-            'team_goals'          => $this->team_goals,
+            'club_goals'          => $this->club_goals,
             'goals_ratio_percent' => $this->goals_ratio_percent,
         ];
     }
