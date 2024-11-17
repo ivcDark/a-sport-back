@@ -17,4 +17,5 @@ Route::group(['prefix' => 'table'], function () {
     Route::get('best-player-season', [\App\Http\Controllers\Api\ViewTableController::class, 'bestPlayerSeason']);
     Route::get('top-game', [\App\Http\Controllers\Api\ViewTableController::class, 'topGame']);
     Route::get('goals-player-to-club', [\App\Http\Controllers\Api\ViewTableController::class, 'goalsPlayerToClub']);
+    Route::get('best-player-on-position', [\App\Http\Controllers\Api\ViewTableController::class, 'betsPlayersOnPosition']);
 });
