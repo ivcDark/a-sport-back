@@ -8,7 +8,7 @@ class ViewTableBestClubSeasonDto
     public $seasonId = null;
     public $leagueId = null;
     public $leagueSeasonId = null;
-    public $sectionGameId = null;
+    public $typeGameId = null;
     public $gamesPlayed = null;
     public $points = null;
     public $goalsScored = null;
@@ -25,7 +25,7 @@ class ViewTableBestClubSeasonDto
         $this->seasonId          = $data['seasonId']          ?? null;
         $this->leagueId          = $data['leagueId']          ?? null;
         $this->leagueSeasonId    = $data['leagueSeasonId']    ?? null;
-        $this->sectionGameId     = $data['sectionGameId']     ?? null;
+        $this->typeGameId        = $data['typeGameId']        ?? null;
         $this->gamesPlayed       = $data['gamesPlayed']       ?? null;
         $this->points            = $data['points']            ?? null;
         $this->goalsScored       = $data['goalsScored']       ?? null;

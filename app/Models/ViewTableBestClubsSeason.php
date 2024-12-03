@@ -16,6 +16,7 @@ class ViewTableBestClubsSeason extends Model
         'league_id',
         'season_id',
         'section_game_id',
+        'type_game_id',
         'games_played',
         'points',
         'goals_scored',

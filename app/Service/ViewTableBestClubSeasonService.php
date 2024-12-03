@@ -35,7 +35,7 @@ class ViewTableBestClubSeasonService
                     'season_id'        => $viewTableBestClubSeasonDto->seasonId,
                     'league_season_id' => $viewTableBestClubSeasonDto->leagueSeasonId,
                     'league_id'        => $viewTableBestClubSeasonDto->leagueId,
-                    'section_game_id'  => $viewTableBestClubSeasonDto->sectionGameId,
+                    'type_game_id'     => $viewTableBestClubSeasonDto->typeGameId,
                 ],
                 [
                     'club_id'             => $viewTableBestClubSeasonDto->clubId,
@@ -43,7 +43,7 @@ class ViewTableBestClubSeasonService
                     'league_season_id'    => $viewTableBestClubSeasonDto->leagueSeasonId,
                     'league_id'           => $viewTableBestClubSeasonDto->leagueId,
                     'points'              => $viewTableBestClubSeasonDto->points,
-                    'section_game_id'     => $viewTableBestClubSeasonDto->sectionGameId,
+                    'type_game_id'        => $viewTableBestClubSeasonDto->typeGameId,
                     'games_played'        => $viewTableBestClubSeasonDto->gamesPlayed,
                     'goals_scored'        => $viewTableBestClubSeasonDto->goalsScored,
                     'goals_conceded'      => $viewTableBestClubSeasonDto->goalsConceded,

@@ -33,12 +33,12 @@ class ViewTableBestClubSeasonCommand extends Command
         $this->info('Начало работы');
 
         $seasons = Season::all();
-        $sectionsGame = FilterTable::sectionGame()->get();
+        $gameTypes = FilterTable::homeGuest()->get();
 
         foreach ($seasons as $season) {
             foreach ($season->leagueSeasons as $leagueSeason) {
-                foreach ($sectionsGame as $sectionGame) {
-                    $result = DB::select('CALL GetBestClubsSeason(?, ?)', [$leagueSeason->id, $sectionGame->sub_name]);
+                foreach ($gameTypes as $gameType) {
+                    $result = DB::select('CALL GetBestClubsSeason(?, ?, ?)', [$leagueSeason->id, $gameType->sub_name, 'full_game']);
 
                     foreach ($result as $item) {
                         $dto = new ViewTableBestClubSeasonDto([
@@ -46,16 +46,16 @@ class ViewTableBestClubSeasonCommand extends Command
                             'seasonId'          => $season->id,
                             'leagueId'          => $leagueSeason->league_id,
                             'leagueSeasonId'    => $leagueSeason->id,
-                            'sectionGameId'     => $sectionGame->id,
-                            'gamesPlayed'       => $item->games_played,
-                            'points'            => $item->total_points,
-                            'goalsScored'       => $item->goals_scored,
-                            'goalsConceded'     => $item->goals_conceded,
-                            'goalsDiff'         => $item->goal_difference,
-                            'wins'              => $item->wins,
-                            'yellowCards'       => $item->total_yellow_cards,
-                            'redCards'          => $item->total_red_cards,
-                            'avgBallPossession' => $item->avg_ball_possession
+                            'typeGameId'        => $gameType->id,
+                            'gamesPlayed'       => $item->games_played ?? 0,
+                            'points'            => $item->total_points ?? 0,
+                            'goalsScored'       => $item->goals_scored ?? 0,
+                            'goalsConceded'     => $item->goals_conceded ?? 0,
+                            'goalsDiff'         => $item->goal_difference ?? 0,
+                            'wins'              => $item->wins ?? 0,
+                            'yellowCards'       => $item->total_yellow_cards ?? 0,
+                            'redCards'          => $item->total_red_cards ?? 0,
+                            'avgBallPossession' => $item->avg_ball_possession ?? 0
                         ]);
                         $model = (new ViewTableBestClubSeasonService())->updateOrCreate($dto);
                     }

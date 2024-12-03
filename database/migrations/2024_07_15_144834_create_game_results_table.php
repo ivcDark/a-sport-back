@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('game_results', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->uuid('game_id');
-            $table->unsignedSmallInteger('home_goals');
-            $table->unsignedSmallInteger('guest_goals');
+            $table->smallInteger('home_goals');
+            $table->smallInteger('guest_goals');
             $table->softDeletes();
             $table->timestamps();
 
