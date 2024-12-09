@@ -17,7 +17,7 @@ class ViewTableBestClubSeasonResource extends JsonResource
         return [
             'club'                => new ClubResource($this->club),
             'league'              => new LeagueResource($this->league),
-            'section_game'        => new FilterTableResource($this->sectionGame),
+            'type_game'           => new FilterTableResource($this->typeGame),
             'games_played'        => $this->games_played,
             'points'              => $this->points,
             'goals_scored'        => $this->goals_scored,

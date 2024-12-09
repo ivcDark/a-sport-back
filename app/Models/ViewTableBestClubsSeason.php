@@ -42,4 +42,9 @@ class ViewTableBestClubsSeason extends Model
     {
         return $this->belongsTo(FilterTable::class, 'section_game_id', 'id');
     }
+
+    public function typeGame(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(FilterTable::class, 'type_game_id', 'id');
+    }
 }

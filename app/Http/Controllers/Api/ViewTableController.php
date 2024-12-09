@@ -23,21 +23,27 @@ use Illuminate\Http\Request;
 
 class ViewTableController extends Controller
 {
-    public function bestClubSeason(Request $request)
+    /**
+     * Главная страница. Лучшие клубы сезона по показателям.
+     */
+    public function bestClubSeason(Request $request, ViewTableBestClubSeasonService $service)
     {
-        $params = $request->all();
-        $service = new ViewTableBestClubSeasonService();
-        $result = $service->get($params);
-
+        $result = $service->get($request->all());
         return ViewTableBestClubSeasonResource::collection($result)->additional(['status' => true]);
     }
 
+    /**
+     * Главная страница. Топовый матч.
+     */
     public function topGame()
     {
         $result = (new ViewTableTopGameService())->get();
         return ViewTableTopGameResource::collection($result)->additional(['status' => true]);
     }
 
+    /**
+     * Главная страница. Лучшие футболисты сезона по показателям.
+     */
     public function bestPlayerSeason(Request $request)
     {
         $params = $request->all();

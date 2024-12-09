@@ -95,11 +95,11 @@ class ViewTableBestClubSeasonService
             $result = $result->where('season_id', 'cc211e20-81a4-4a29-824a-0d1b6958ae36'); //2024/2025
         }
 
-        if (isset($filters['section_game_id'])) {
-            $result = $result->where('section_game_id', $filters['section_game']);
+        if (isset($filters['type_game_id'])) {
+            $result = $result->where('type_game_id', $filters['type_game']);
         } else {
-            $sectionGameAllGame = FilterTable::sectionGame()->allGame()->first();
-            $result = $result->where('section_game_id', $sectionGameAllGame->id);
+            $sectionGameAllGame = FilterTable::homeGuestOnlyAll()->first();
+            $result = $result->where('type_game_id', $sectionGameAllGame->id);
         }
 
         $order = isset($filters['order']) ? FilterTable::find($filters['order'])->sub_name : 'points';
