@@ -11,7 +11,7 @@ class League extends Model
 {
     use HasFactory, SoftDeletes, HasUuids;
 
-    protected $fillable = ['full_name', 'name', 'code', 'country_id', 'logo'];
+    protected $fillable = ['full_name', 'name', 'code', 'country_id', 'logo', 'slug', 'flashscore_id'];
 
     public function getApiFootballIdAttribute()
     {
