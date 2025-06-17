@@ -1,0 +1,922 @@
+[
+  {
+    "name": "Albania",
+    "slug": "albania",
+    "flashscore_id": 17
+  },
+  {
+    "name": "Algeria",
+    "slug": "algeria",
+    "flashscore_id": 18
+  },
+  {
+    "name": "Andorra",
+    "slug": "andorra",
+    "flashscore_id": 19
+  },
+  {
+    "name": "Angola",
+    "slug": "angola",
+    "flashscore_id": 20
+  },
+  {
+    "name": "Antigua & Barbuda",
+    "slug": "antigua-barbuda",
+    "flashscore_id": 21
+  },
+  {
+    "name": "Argentina",
+    "slug": "argentina",
+    "flashscore_id": 22
+  },
+  {
+    "name": "Armenia",
+    "slug": "armenia",
+    "flashscore_id": 23
+  },
+  {
+    "name": "Aruba",
+    "slug": "aruba",
+    "flashscore_id": 229
+  },
+  {
+    "name": "Australia",
+    "slug": "australia",
+    "flashscore_id": 24
+  },
+  {
+    "name": "Austria",
+    "slug": "austria",
+    "flashscore_id": 25
+  },
+  {
+    "name": "Azerbaijan",
+    "slug": "azerbaijan",
+    "flashscore_id": 26
+  },
+  {
+    "name": "Bahrain",
+    "slug": "bahrain",
+    "flashscore_id": 28
+  },
+  {
+    "name": "Bangladesh",
+    "slug": "bangladesh",
+    "flashscore_id": 29
+  },
+  {
+    "name": "Barbados",
+    "slug": "barbados",
+    "flashscore_id": 30
+  },
+  {
+    "name": "Belarus",
+    "slug": "belarus",
+    "flashscore_id": 31
+  },
+  {
+    "name": "Belgium",
+    "slug": "belgium",
+    "flashscore_id": 32
+  },
+  {
+    "name": "Benin",
+    "slug": "benin",
+    "flashscore_id": 34
+  },
+  {
+    "name": "Bermuda",
+    "slug": "bermuda",
+    "flashscore_id": 230
+  },
+  {
+    "name": "Bhutan",
+    "slug": "bhutan",
+    "flashscore_id": 35
+  },
+  {
+    "name": "Bolivia",
+    "slug": "bolivia",
+    "flashscore_id": 36
+  },
+  {
+    "name": "Bosnia and Herzegovina",
+    "slug": "bosnia-and-herzegovina",
+    "flashscore_id": 37
+  },
+  {
+    "name": "Botswana",
+    "slug": "botswana",
+    "flashscore_id": 38
+  },
+  {
+    "name": "Brazil",
+    "slug": "brazil",
+    "flashscore_id": 39
+  },
+  {
+    "name": "Bulgaria",
+    "slug": "bulgaria",
+    "flashscore_id": 41
+  },
+  {
+    "name": "Burkina Faso",
+    "slug": "burkina-faso",
+    "flashscore_id": 42
+  },
+  {
+    "name": "Burundi",
+    "slug": "burundi",
+    "flashscore_id": 44
+  },
+  {
+    "name": "Cambodia",
+    "slug": "cambodia",
+    "flashscore_id": 45
+  },
+  {
+    "name": "Cameroon",
+    "slug": "cameroon",
+    "flashscore_id": 46
+  },
+  {
+    "name": "Canada",
+    "slug": "canada",
+    "flashscore_id": 47
+  },
+  {
+    "name": "Cape Verde",
+    "slug": "cape-verde",
+    "flashscore_id": 48
+  },
+  {
+    "name": "Chad",
+    "slug": "chad",
+    "flashscore_id": 50
+  },
+  {
+    "name": "Chile",
+    "slug": "chile",
+    "flashscore_id": 51
+  },
+  {
+    "name": "China",
+    "slug": "china",
+    "flashscore_id": 52
+  },
+  {
+    "name": "Colombia",
+    "slug": "colombia",
+    "flashscore_id": 53
+  },
+  {
+    "name": "Costa Rica",
+    "slug": "costa-rica",
+    "flashscore_id": 57
+  },
+  {
+    "name": "Croatia",
+    "slug": "croatia",
+    "flashscore_id": 59
+  },
+  {
+    "name": "Cuba",
+    "slug": "cuba",
+    "flashscore_id": 60
+  },
+  {
+    "name": "Curaçao",
+    "slug": "curacao",
+    "flashscore_id": 300
+  },
+  {
+    "name": "Cyprus",
+    "slug": "cyprus",
+    "flashscore_id": 61
+  },
+  {
+    "name": "Czech Republic",
+    "slug": "czech-republic",
+    "flashscore_id": 62
+  },
+  {
+    "name": "Denmark",
+    "slug": "denmark",
+    "flashscore_id": 63
+  },
+  {
+    "name": "Djibouti",
+    "slug": "djibouti",
+    "flashscore_id": 64
+  },
+  {
+    "name": "Dominican Republic",
+    "slug": "dominican-republic",
+    "flashscore_id": 66
+  },
+  {
+    "name": "DR Congo",
+    "slug": "dr-congo",
+    "flashscore_id": 55
+  },
+  {
+    "name": "Ecuador",
+    "slug": "ecuador",
+    "flashscore_id": 68
+  },
+  {
+    "name": "Egypt",
+    "slug": "egypt",
+    "flashscore_id": 69
+  },
+  {
+    "name": "El Salvador",
+    "slug": "el-salvador",
+    "flashscore_id": 70
+  },
+  {
+    "name": "England",
+    "slug": "england",
+    "flashscore_id": 198
+  },
+  {
+    "name": "Estonia",
+    "slug": "estonia",
+    "flashscore_id": 73
+  },
+  {
+    "name": "Eswatini",
+    "slug": "eswatini",
+    "flashscore_id": 180
+  },
+  {
+    "name": "Ethiopia",
+    "slug": "ethiopia",
+    "flashscore_id": 74
+  },
+  {
+    "name": "Faroe Islands",
+    "slug": "faroe-islands",
+    "flashscore_id": 231
+  },
+  {
+    "name": "Fiji",
+    "slug": "fiji",
+    "flashscore_id": 75
+  },
+  {
+    "name": "Finland",
+    "slug": "finland",
+    "flashscore_id": 76
+  },
+  {
+    "name": "France",
+    "slug": "france",
+    "flashscore_id": 77
+  },
+  {
+    "name": "Gabon",
+    "slug": "gabon",
+    "flashscore_id": 78
+  },
+  {
+    "name": "Gambia",
+    "slug": "gambia",
+    "flashscore_id": 79
+  },
+  {
+    "name": "Georgia",
+    "slug": "georgia",
+    "flashscore_id": 80
+  },
+  {
+    "name": "Germany",
+    "slug": "germany",
+    "flashscore_id": 81
+  },
+  {
+    "name": "Ghana",
+    "slug": "ghana",
+    "flashscore_id": 82
+  },
+  {
+    "name": "Gibraltar",
+    "slug": "gibraltar",
+    "flashscore_id": 304
+  },
+  {
+    "name": "Greece",
+    "slug": "greece",
+    "flashscore_id": 83
+  },
+  {
+    "name": "Grenada",
+    "slug": "grenada",
+    "flashscore_id": 84
+  },
+  {
+    "name": "Guatemala",
+    "slug": "guatemala",
+    "flashscore_id": 85
+  },
+  {
+    "name": "Guinea",
+    "slug": "guinea",
+    "flashscore_id": 86
+  },
+  {
+    "name": "Haiti",
+    "slug": "haiti",
+    "flashscore_id": 89
+  },
+  {
+    "name": "Honduras",
+    "slug": "honduras",
+    "flashscore_id": 90
+  },
+  {
+    "name": "Hong Kong",
+    "slug": "hong-kong",
+    "flashscore_id": 222
+  },
+  {
+    "name": "Hungary",
+    "slug": "hungary",
+    "flashscore_id": 91
+  },
+  {
+    "name": "Iceland",
+    "slug": "iceland",
+    "flashscore_id": 92
+  },
+  {
+    "name": "India",
+    "slug": "india",
+    "flashscore_id": 93
+  },
+  {
+    "name": "Indonesia",
+    "slug": "indonesia",
+    "flashscore_id": 228
+  },
+  {
+    "name": "Iran",
+    "slug": "iran",
+    "flashscore_id": 94
+  },
+  {
+    "name": "Iraq",
+    "slug": "iraq",
+    "flashscore_id": 95
+  },
+  {
+    "name": "Ireland",
+    "slug": "ireland",
+    "flashscore_id": 96
+  },
+  {
+    "name": "Israel",
+    "slug": "israel",
+    "flashscore_id": 97
+  },
+  {
+    "name": "Italy",
+    "slug": "italy",
+    "flashscore_id": 98
+  },
+  {
+    "name": "Ivory Coast",
+    "slug": "ivory-coast",
+    "flashscore_id": 58
+  },
+  {
+    "name": "Jamaica",
+    "slug": "jamaica",
+    "flashscore_id": 99
+  },
+  {
+    "name": "Japan",
+    "slug": "japan",
+    "flashscore_id": 100
+  },
+  {
+    "name": "Jordan",
+    "slug": "jordan",
+    "flashscore_id": 101
+  },
+  {
+    "name": "Kazakhstan",
+    "slug": "kazakhstan",
+    "flashscore_id": 102
+  },
+  {
+    "name": "Kenya",
+    "slug": "kenya",
+    "flashscore_id": 103
+  },
+  {
+    "name": "Kosovo",
+    "slug": "kosovo",
+    "flashscore_id": 212
+  },
+  {
+    "name": "Kuwait",
+    "slug": "kuwait",
+    "flashscore_id": 107
+  },
+  {
+    "name": "Kyrgyzstan",
+    "slug": "kyrgyzstan",
+    "flashscore_id": 108
+  },
+  {
+    "name": "Laos",
+    "slug": "laos",
+    "flashscore_id": 109
+  },
+  {
+    "name": "Latvia",
+    "slug": "latvia",
+    "flashscore_id": 110
+  },
+  {
+    "name": "Lebanon",
+    "slug": "lebanon",
+    "flashscore_id": 111
+  },
+  {
+    "name": "Lesotho",
+    "slug": "lesotho",
+    "flashscore_id": 112
+  },
+  {
+    "name": "Liberia",
+    "slug": "liberia",
+    "flashscore_id": 113
+  },
+  {
+    "name": "Libya",
+    "slug": "libya",
+    "flashscore_id": 114
+  },
+  {
+    "name": "Liechtenstein",
+    "slug": "liechtenstein",
+    "flashscore_id": 115
+  },
+  {
+    "name": "Lithuania",
+    "slug": "lithuania",
+    "flashscore_id": 116
+  },
+  {
+    "name": "Luxembourg",
+    "slug": "luxembourg",
+    "flashscore_id": 117
+  },
+  {
+    "name": "Macao",
+    "slug": "macao",
+    "flashscore_id": 233
+  },
+  {
+    "name": "Malawi",
+    "slug": "malawi",
+    "flashscore_id": 120
+  },
+  {
+    "name": "Malaysia",
+    "slug": "malaysia",
+    "flashscore_id": 121
+  },
+  {
+    "name": "Maldives",
+    "slug": "maldives",
+    "flashscore_id": 122
+  },
+  {
+    "name": "Mali",
+    "slug": "mali",
+    "flashscore_id": 123
+  },
+  {
+    "name": "Malta",
+    "slug": "malta",
+    "flashscore_id": 124
+  },
+  {
+    "name": "Martinique",
+    "slug": "martinique",
+    "flashscore_id": 255
+  },
+  {
+    "name": "Mauritania",
+    "slug": "mauritania",
+    "flashscore_id": 126
+  },
+  {
+    "name": "Mauritius",
+    "slug": "mauritius",
+    "flashscore_id": 127
+  },
+  {
+    "name": "Mexico",
+    "slug": "mexico",
+    "flashscore_id": 128
+  },
+  {
+    "name": "Moldova",
+    "slug": "moldova",
+    "flashscore_id": 130
+  },
+  {
+    "name": "Mongolia",
+    "slug": "mongolia",
+    "flashscore_id": 132
+  },
+  {
+    "name": "Montenegro",
+    "slug": "montenegro",
+    "flashscore_id": 133
+  },
+  {
+    "name": "Morocco",
+    "slug": "morocco",
+    "flashscore_id": 134
+  },
+  {
+    "name": "Mozambique",
+    "slug": "mozambique",
+    "flashscore_id": 135
+  },
+  {
+    "name": "Myanmar",
+    "slug": "myanmar",
+    "flashscore_id": 43
+  },
+  {
+    "name": "Namibia",
+    "slug": "namibia",
+    "flashscore_id": 136
+  },
+  {
+    "name": "Netherlands",
+    "slug": "netherlands",
+    "flashscore_id": 139
+  },
+  {
+    "name": "New Zealand",
+    "slug": "new-zealand",
+    "flashscore_id": 140
+  },
+  {
+    "name": "Nicaragua",
+    "slug": "nicaragua",
+    "flashscore_id": 141
+  },
+  {
+    "name": "Niger",
+    "slug": "niger",
+    "flashscore_id": 142
+  },
+  {
+    "name": "Nigeria",
+    "slug": "nigeria",
+    "flashscore_id": 143
+  },
+  {
+    "name": "Northern Ireland",
+    "slug": "northern-ireland",
+    "flashscore_id": 144
+  },
+  {
+    "name": "North Macedonia",
+    "slug": "north-macedonia",
+    "flashscore_id": 118
+  },
+  {
+    "name": "Norway",
+    "slug": "norway",
+    "flashscore_id": 145
+  },
+  {
+    "name": "Oman",
+    "slug": "oman",
+    "flashscore_id": 146
+  },
+  {
+    "name": "Pakistan",
+    "slug": "pakistan",
+    "flashscore_id": 147
+  },
+  {
+    "name": "Palestine",
+    "slug": "palestine",
+    "flashscore_id": 215
+  },
+  {
+    "name": "Panama",
+    "slug": "panama",
+    "flashscore_id": 149
+  },
+  {
+    "name": "Paraguay",
+    "slug": "paraguay",
+    "flashscore_id": 151
+  },
+  {
+    "name": "Peru",
+    "slug": "peru",
+    "flashscore_id": 152
+  },
+  {
+    "name": "Philippines",
+    "slug": "philippines",
+    "flashscore_id": 153
+  },
+  {
+    "name": "Poland",
+    "slug": "poland",
+    "flashscore_id": 154
+  },
+  {
+    "name": "Portugal",
+    "slug": "portugal",
+    "flashscore_id": 155
+  },
+  {
+    "name": "Qatar",
+    "slug": "qatar",
+    "flashscore_id": 156
+  },
+  {
+    "name": "Republic of the Congo",
+    "slug": "republic-of-the-congo",
+    "flashscore_id": 56
+  },
+  {
+    "name": "Réunion",
+    "slug": "reunion",
+    "flashscore_id": 237
+  },
+  {
+    "name": "Romania",
+    "slug": "romania",
+    "flashscore_id": 157
+  },
+  {
+    "name": "Russia",
+    "slug": "russia",
+    "flashscore_id": 158
+  },
+  {
+    "name": "Rwanda",
+    "slug": "rwanda",
+    "flashscore_id": 159
+  },
+  {
+    "name": "San Marino",
+    "slug": "san-marino",
+    "flashscore_id": 163
+  },
+  {
+    "name": "São Tomé and Príncipe",
+    "slug": "sao-tome-and-principe",
+    "flashscore_id": 164
+  },
+  {
+    "name": "Saudi Arabia",
+    "slug": "saudi-arabia",
+    "flashscore_id": 165
+  },
+  {
+    "name": "Scotland",
+    "slug": "scotland",
+    "flashscore_id": 199
+  },
+  {
+    "name": "Senegal",
+    "slug": "senegal",
+    "flashscore_id": 166
+  },
+  {
+    "name": "Serbia",
+    "slug": "serbia",
+    "flashscore_id": 167
+  },
+  {
+    "name": "Seychelles",
+    "slug": "seychelles",
+    "flashscore_id": 168
+  },
+  {
+    "name": "Sierra Leone",
+    "slug": "sierra-leone",
+    "flashscore_id": 169
+  },
+  {
+    "name": "Singapore",
+    "slug": "singapore",
+    "flashscore_id": 170
+  },
+  {
+    "name": "Slovakia",
+    "slug": "slovakia",
+    "flashscore_id": 171
+  },
+  {
+    "name": "Slovenia",
+    "slug": "slovenia",
+    "flashscore_id": 172
+  },
+  {
+    "name": "Somalia",
+    "slug": "somalia",
+    "flashscore_id": 174
+  },
+  {
+    "name": "South Africa",
+    "slug": "south-africa",
+    "flashscore_id": 175
+  },
+  {
+    "name": "South Korea",
+    "slug": "south-korea",
+    "flashscore_id": 106
+  },
+  {
+    "name": "Spain",
+    "slug": "spain",
+    "flashscore_id": 176
+  },
+  {
+    "name": "Sri Lanka",
+    "slug": "sri-lanka",
+    "flashscore_id": 177
+  },
+  {
+    "name": "Sudan",
+    "slug": "sudan",
+    "flashscore_id": 178
+  },
+  {
+    "name": "Suriname",
+    "slug": "suriname",
+    "flashscore_id": 179
+  },
+  {
+    "name": "Sweden",
+    "slug": "sweden",
+    "flashscore_id": 181
+  },
+  {
+    "name": "Switzerland",
+    "slug": "switzerland",
+    "flashscore_id": 182
+  },
+  {
+    "name": "Syria",
+    "slug": "syria",
+    "flashscore_id": 183
+  },
+  {
+    "name": "Taiwan",
+    "slug": "taiwan",
+    "flashscore_id": 218
+  },
+  {
+    "name": "Tajikistan",
+    "slug": "tajikistan",
+    "flashscore_id": 184
+  },
+  {
+    "name": "Tanzania",
+    "slug": "tanzania",
+    "flashscore_id": 185
+  },
+  {
+    "name": "Thailand",
+    "slug": "thailand",
+    "flashscore_id": 186
+  },
+  {
+    "name": "Togo",
+    "slug": "togo",
+    "flashscore_id": 187
+  },
+  {
+    "name": "Trinidad and Tobago",
+    "slug": "trinidad-and-tobago",
+    "flashscore_id": 189
+  },
+  {
+    "name": "Tunisia",
+    "slug": "tunisia",
+    "flashscore_id": 190
+  },
+  {
+    "name": "Turkey",
+    "slug": "turkey",
+    "flashscore_id": 191
+  },
+  {
+    "name": "Turkmenistan",
+    "slug": "turkmenistan",
+    "flashscore_id": 192
+  },
+  {
+    "name": "Uganda",
+    "slug": "uganda",
+    "flashscore_id": 194
+  },
+  {
+    "name": "Ukraine",
+    "slug": "ukraine",
+    "flashscore_id": 195
+  },
+  {
+    "name": "United Arab Emirates",
+    "slug": "united-arab-emirates",
+    "flashscore_id": 196
+  },
+  {
+    "name": "Uruguay",
+    "slug": "uruguay",
+    "flashscore_id": 201
+  },
+  {
+    "name": "USA",
+    "slug": "usa",
+    "flashscore_id": 200
+  },
+  {
+    "name": "Uzbekistan",
+    "slug": "uzbekistan",
+    "flashscore_id": 202
+  },
+  {
+    "name": "Venezuela",
+    "slug": "venezuela",
+    "flashscore_id": 205
+  },
+  {
+    "name": "Vietnam",
+    "slug": "vietnam",
+    "flashscore_id": 206
+  },
+  {
+    "name": "Wales",
+    "slug": "wales",
+    "flashscore_id": 207
+  },
+  {
+    "name": "Yemen",
+    "slug": "yemen",
+    "flashscore_id": 208
+  },
+  {
+    "name": "Zambia",
+    "slug": "zambia",
+    "flashscore_id": 209
+  },
+  {
+    "name": "Zimbabwe",
+    "slug": "zimbabwe",
+    "flashscore_id": 210
+  },
+  {
+    "name": "Africa",
+    "slug": "africa",
+    "flashscore_id": 1
+  },
+  {
+    "name": "Asia",
+    "slug": "asia",
+    "flashscore_id": 5
+  },
+  {
+    "name": "Australia & Oceania",
+    "slug": "australia-oceania",
+    "flashscore_id": 7
+  },
+  {
+    "name": "Europe",
+    "slug": "europe",
+    "flashscore_id": 6
+  },
+  {
+    "name": "North & Central America",
+    "slug": "north-central-america",
+    "flashscore_id": 2
+  },
+  {
+    "name": "South America",
+    "slug": "south-america",
+    "flashscore_id": 3
+  },
+  {
+    "name": "World",
+    "slug": "world",
+    "flashscore_id": 8
+  }
+]

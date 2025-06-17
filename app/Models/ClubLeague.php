@@ -12,4 +12,9 @@ class ClubLeague extends Model
     use HasFactory, SoftDeletes, HasUuids;
 
     protected $fillable = ['club_id', 'league_season_id'];
+
+    public function club()
+    {
+        return $this->belongsTo(Club::class);
+    }
 }

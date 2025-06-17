@@ -10,5 +10,5 @@ class PlayerClub extends Model
 {
     use HasFactory, HasUuids;
 
-    protected $fillable = ['player_id', 'club_id'];
+    protected $fillable = ['player_id', 'club_id', 'in_club'];
 }

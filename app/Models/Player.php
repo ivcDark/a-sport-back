@@ -11,7 +11,7 @@ class Player extends Model
 {
     use HasFactory, SoftDeletes, HasUuids;
 
-    protected $fillable = ['club_id', 'fio', 'number', 'soccer_24_id', 'fieldName', 'listName', 'country_id', 'slug', 'in_club', 'position', 'image', 'birthday'];
+    protected $fillable = ['club_id', 'fio', 'number', 'soccer_24_id', 'fieldName', 'listName', 'country_id', 'slug', 'in_club', 'position', 'image', 'birthday', 'flashscore_id'];
 
     public function clubs()
     {

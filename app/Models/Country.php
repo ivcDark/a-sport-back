@@ -11,7 +11,7 @@ class Country extends Model
 {
     use HasFactory, SoftDeletes, HasUuids;
 
-    protected $fillable = ['full_name', 'name', 'code', 'logo'];
+    protected $fillable = ['full_name', 'name', 'code', 'logo', 'slug', 'flashscore_id'];
 
     public function leagues(): \Illuminate\Database\Eloquent\Relations\HasMany
     {

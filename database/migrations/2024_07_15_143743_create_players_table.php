@@ -15,7 +15,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->uuid('club_id');
             $table->string('fio');
-            $table->unsignedSmallInteger('number');
+            $table->unsignedSmallInteger('number')->nullable();
             $table->softDeletes();
             $table->timestamps();
 
