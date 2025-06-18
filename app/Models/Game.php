@@ -11,7 +11,7 @@ class Game extends Model
 {
     use HasFactory, SoftDeletes, HasUuids;
 
-    protected $fillable = ['club_home_id', 'club_guest_id', 'league_season_id', 'tour', 'time_start'];
+    protected $fillable = ['club_home_id', 'club_guest_id', 'league_season_id', 'tour', 'time_start', 'flashscore_id'];
 
     public function getSoccer24IdAttribute()
     {
