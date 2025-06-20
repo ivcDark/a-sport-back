@@ -10,5 +10,5 @@ class GameStatistic extends Model
 {
     use HasFactory, HasUuids;
 
-    protected $fillable = ['game_id', 'club_id', 'section_game', 'type_indicator', 'value'];
+    protected $fillable = ['game_id', 'club_id', 'section_game', 'type_indicator', 'value', 'period', 'stat_type_id'];
 }
