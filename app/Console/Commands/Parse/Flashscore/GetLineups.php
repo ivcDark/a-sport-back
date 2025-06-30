@@ -3,7 +3,9 @@
 namespace App\Console\Commands\Parse\Flashscore;
 
 use App\Models\Club;
+use App\Models\Coach;
 use App\Models\Country;
+use App\Models\ExternalMapping;
 use App\Models\Game;
 use App\Models\GamePlayer;
 use App\Models\League;
@@ -156,8 +158,6 @@ class GetLineups extends Command
                         );
 
                         $this->info("Добавили связь игрока с клубом");
-
-//                        throw new \Exception("Игрока с FS ID '{$player['id']}' ({$player['listName']}) нет в БД. Загрузка не может быть выполнена");
                     }
 
                     $gamePlayerModel = GamePlayer::updateOrCreate(
@@ -175,6 +175,7 @@ class GetLineups extends Command
                             'is_injured_group' => $group == "Injured",
                             'is_best' => $player['rating']['isBest'] ?? false,
                             'rating' => $player['rating']['value'] ?? null,
+                            'number_player' => $player['number'] ?? null,
                         ]
                     );
                     $this->info("Игрок {$playerModel->fio} записан в матче");

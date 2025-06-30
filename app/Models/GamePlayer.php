@@ -22,5 +22,6 @@ class GamePlayer extends Model
         'rating',
         'is_missing_game',
         'missing_reason',
+        'number_player',
     ];
 }
