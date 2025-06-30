@@ -5,6 +5,7 @@ namespace App\Console\Commands\Parse\Flashscore;
 use App\Models\Club;
 use App\Models\ClubLeague;
 use App\Models\Country;
+use App\Models\GroupTournament;
 use App\Models\League;
 use App\Models\LeagueSeason;
 use App\Models\Season;
@@ -42,7 +43,7 @@ class GetClubs extends Command
 
             $this->info('Начинаем выгружать html с параметрами');
 
-            $result = Http::get("https://www.flashscorekz.com/football/russia/{$leagueModel->slug}/standings");
+            $result = Http::get("https://www.flashscore.com/football/{$leagueModel->country->slug}/{$leagueModel->slug}/standings");
 
             if ($result->status() == 200) {
                 preg_match('/tournamentId:\s*"([^"]+)"/', $result->body(), $tournamentIdMatch);
@@ -59,24 +60,69 @@ class GetClubs extends Command
 
                 if ($result->status() == 200) {
 
-                    preg_match_all('/IPU÷(.*?)¬/', $result->body(), $images);
-                    preg_match_all('/TN÷(.*?)¬/', $result->body(), $teamNames);
-                    preg_match_all('/TI÷(.*?)¬/', $result->body(), $teamIds);
-                    preg_match_all('/TIU÷\/team\/(.*?)\/.*?¬/', $result->body(), $teamSlugs);
+                    preg_match_all('/TE÷(.*?)¬(.*?)((?=TE÷)|$)/s', $result->body(), $groupsMatches, PREG_SET_ORDER);
 
-                    $clubs = [];
-                    $count = min(count($images[1]), count($teamNames[1]), count($teamIds[1]), count($teamSlugs[1]));
+                    if (count($groupsMatches) == 0) {
+                        preg_match_all('/IPU÷(.*?)¬/', $result->body(), $images);
+                        preg_match_all('/TN÷(.*?)¬/', $result->body(), $teamNames);
+                        preg_match_all('/TI÷(.*?)¬/', $result->body(), $teamIds);
+                        preg_match_all('/TIU÷\/team\/(.*?)\/.*?¬/', $result->body(), $teamSlugs);
 
-                    for ($i = 0; $i < $count; $i++) {
-                        $clubs[] = [
-                            'image' => $images[1][$i],
-                            'name' => $teamNames[1][$i],
-                            'slug' => $teamSlugs[1][$i],
-                            'id' => $teamIds[1][$i+1],
-                        ];
+                        $clubs = [];
+                        $count = min(count($images[1]), count($teamNames[1]), count($teamIds[1]), count($teamSlugs[1]));
 
-                        $this->info("Получили команду: {'name' = {$teamNames[1][$i]}, 'image' = {$images[1][$i]}, 'id = ".$teamIds[1][$i+1]."}");
+                        for ($i = 0; $i < $count; $i++) {
+                            $clubs[] = [
+                                'image' => $images[1][$i],
+                                'name' => $teamNames[1][$i],
+                                'slug' => $teamSlugs[1][$i],
+                                'id' => $teamIds[1][$i+1],
+                                'group_id' => null,
+                            ];
+
+                            $this->info("Получили команду: {'name' = {$teamNames[1][$i]}, 'image' = {$images[1][$i]}, 'id = ".$teamIds[1][$i+1]."}");
+                        }
+                    } else {
+                        $numberGroup = 1;
+                        $clubs = [];
+                        foreach ($groupsMatches as $groupMatch) {
+                            $text = $groupMatch[2];
+                            $groupModel = GroupTournament::updateOrCreate(
+                                [
+                                    'league_season_id' => $leagueSeasonModel->id,
+                                    'name' => $groupMatch[1]
+                                ],
+                                [
+                                    'league_season_id' => $leagueSeasonModel->id,
+                                    'name' => $groupMatch[1],
+                                    'sort_order' => $numberGroup,
+                                ]
+                            );
+                            $numberGroup++;
+
+//                            preg_match_all('/IPU÷(.*?)¬/', $text, $images);
+                            preg_match_all('/TN÷(.*?)¬/', $text, $teamNames);
+                            preg_match_all('/TI÷(.*?)¬/', $text, $teamIds);
+                            preg_match_all('/TIU÷\/team\/(.*?)\/.*?¬/', $text, $teamSlugs);
+
+                            $count = min(count($teamNames[1]), count($teamIds[1]), count($teamSlugs[1]));
+                            dump($teamIds[1]);
+                            for ($i = 0; $i < $count; $i++) {
+                                $teamId = count($teamIds[1]) == 4 ? $teamIds[1][$i] : $teamIds[1][$i+1];
+                                $clubs[] = [
+                                    'image' => null,
+                                    'name' => $teamNames[1][$i],
+                                    'slug' => $teamSlugs[1][$i],
+                                    'id' => $teamId,
+                                    'group_id' => $groupModel->id,
+                                ];
+
+                                $this->info("Получили команду: {'name' = {$teamNames[1][$i]}, 'image' = null, 'id = ".$teamId."}");
+                            }
+                        }
                     }
+
+
                 } else {
                     $this->error("Ошибка во время выгрузки клубов из Flashscore");
                     $this->error($result->body());
@@ -90,13 +136,16 @@ class GetClubs extends Command
                 return false;
             }
 
-
-
             $this->info("Загружаем клубы в базу");
 
             if (count($clubs) > 0) {
                 foreach ($clubs as $club) {
-                    $clubModel = Club::create(
+                    $clubModel = Club::updateOrCreate(
+                        [
+                            'slug' => $club['slug'],
+                            'flashscore_id' => $club['id'],
+                            'country_id' => $leagueModel->country->id,
+                        ],
                         [
                             'name' => $club['name'],
                             'full_name' => $club['name'],
@@ -107,10 +156,16 @@ class GetClubs extends Command
                         ]
                     );
 
-                    $clubLeagueModel = ClubLeague::create([
-                        'club_id' => $clubModel->id,
-                        'league_season_id' => $leagueSeasonModel->id,
-                    ]);
+                    $clubLeagueModel = ClubLeague::updateOrCreate(
+                        [
+                            'club_id' => $clubModel->id,
+                            'league_season_id' => $leagueSeasonModel->id,
+                        ],
+                        [
+                            'club_id' => $clubModel->id,
+                            'league_season_id' => $leagueSeasonModel->id,
+                        ]
+                    );
 
                     $this->info("Клуб создан в БД: {'id' = $clubModel->id}");
                 }

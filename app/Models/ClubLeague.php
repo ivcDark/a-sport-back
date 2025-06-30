@@ -11,7 +11,7 @@ class ClubLeague extends Model
 {
     use HasFactory, SoftDeletes, HasUuids;
 
-    protected $fillable = ['club_id', 'league_season_id'];
+    protected $fillable = ['club_id', 'league_season_id', 'group_tournament_id'];
 
     public function club()
     {
