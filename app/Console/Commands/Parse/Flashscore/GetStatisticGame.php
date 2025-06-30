@@ -50,7 +50,6 @@ class GetStatisticGame extends Command
 
                 if ($this->insertStatistics()) {
                     $this->info('Загрузка статистики игр завершена');
-                    return 1;
                 }
 
             } else {

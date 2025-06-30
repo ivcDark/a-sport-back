@@ -11,7 +11,7 @@ class Season extends Model
 {
     use HasFactory, SoftDeletes, HasUuids;
 
-    protected $fillable = ['title', 'code'];
+    protected $fillable = ['title', 'code', 'year_start', 'year_end'];
 
     public function leagueSeasons(): \Illuminate\Database\Eloquent\Relations\HasMany
     {

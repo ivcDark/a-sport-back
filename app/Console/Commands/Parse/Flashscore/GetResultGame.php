@@ -49,7 +49,6 @@ class GetResultGame extends Command
 
                 if ($this->insertGameResult($games, $this->option('league_season'))) {
                     $this->info('Загрузка игр завершена');
-                    return 1;
                 }
 
             } else {
