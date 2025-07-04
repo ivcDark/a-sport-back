@@ -80,6 +80,11 @@ class GetLeagues extends Command
                     $leagueModel = League::create(
                         [
                             'name' => $league['name'],
+                            'flashscore_id' => $league['leagueId'],
+                            'country_id' => $countryModel->id,
+                        ],
+                        [
+                            'name' => $league['name'],
                             'slug' => $league['slug'],
                             'flashscore_id' => $league['leagueId'],
                             'country_id' => $countryModel->id,
