@@ -7,72 +7,69 @@ use App\Models\ClubLeague;
 use App\Models\Country;
 use App\Models\Game;
 use App\Models\GameResult;
+use App\Models\GameRound;
+use App\Models\GameStage;
 use App\Models\LeagueSeason;
 use App\Models\Player;
 use App\Models\PlayerClub;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Symfony\Component\Console\Command\Command as CommandAlias;
 use Symfony\Component\DomCrawler\Crawler;
 
 class GetResultGame extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
     protected $signature = 'flashscore:get-game-result {--league_season= : ID лиги сезона}';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
     protected $description = 'FlashScore - получение результатов в лиге';
+    private $gameStages;
+    private $gameRounds;
+    private $leagueSeasonModel;
 
-    /**
-     * Execute the console command.
-     */
     public function handle()
     {
+        $this->setting();
+
         DB::beginTransaction();
 
         try {
-            if ($this->option('league_season')) {
-
-                $this->info("Формируем список игр и их результаты");
-
-                $games = $this->getGameResults();
-
-                $this->info("Список готов. Приступаем к insert в БД");
-
-                if ($this->insertGameResult($games, $this->option('league_season'))) {
-                    $this->info('Загрузка игр завершена');
-                }
-
-            } else {
-                $this->error('Для работы необходимо указать лигу сезона (UUID)');
-                return false;
+            if (!$this->option('league_season')) {
+                $this->error('Необходимо указать параметр --league_season');
+                return CommandAlias::FAILURE;
             }
 
-            DB::commit();
-            return 1;
-        } catch (\Exception $exception) {
-            DB::rollBack();
-            $this->error("Message: " . $exception->getMessage());
-            $this->error("Line: " . $exception->getLine());
-        }
+            $this->gameStages = GameStage::all();
+            $this->gameRounds = GameRound::all();
 
+            $this->info("Получаем список матчей");
+            $games = $this->getGameResults();
+            $this->info("Вставляем данные в БД");
+            $this->insertGameResult($games, $this->option('league_season'));
+
+            DB::commit();
+            $this->info("Готово!");
+            return CommandAlias::SUCCESS;
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            $this->error($e->getMessage());
+            $this->error("Line: " . $e->getLine());
+            return CommandAlias::FAILURE;
+        }
+    }
+
+    private function setting()
+    {
+        $this->leagueSeasonModel = LeagueSeason::where('id', $this->option('league_season'))->first();
     }
 
     private function getGameResults(): array
     {
         $this->info("Отправляем запрос для получения seasonId на Flashscore");
-        $leagueSeasonModel = LeagueSeason::where('id', $this->option('league_season'))->first();
-        $countrySlug = mb_strtolower($leagueSeasonModel->league->country->name);
-        $leagueSlug = $leagueSeasonModel->league->slug;
-        $seasonTitle = $leagueSeasonModel->season->title;
+
+        $countrySlug = mb_strtolower($this->leagueSeasonModel->league->country->name);
+        $leagueSlug = $this->leagueSeasonModel->league->slug;
+        $seasonTitle = $this->leagueSeasonModel->season->title;
 
         $url = "https://www.flashscore.com/football/$countrySlug/$leagueSlug-$seasonTitle/results/";
         $result = Http::withoutVerifying()
@@ -107,7 +104,7 @@ class GetResultGame extends Command
 
         for ($i = 1; $i <= 4; $i++) {
             $this->info("Отправим запрос на страницу $i");
-            $urlGames = "https://2.flashscore.ninja/2/x/feed/tr_1_{$leagueSeasonModel->league->country->flashscore_id}_{$leagueSeasonModel->league->flashscore_id}_{$seasonId}_{$i}_4_en_1";
+            $urlGames = "https://2.flashscore.ninja/2/x/feed/tr_1_{$this->leagueSeasonModel->league->country->flashscore_id}_{$this->leagueSeasonModel->league->flashscore_id}_{$seasonId}_{$i}_4_en_1";
             $result = Http::withoutVerifying()
                 ->withHeaders([
                     "User-Agent" => "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
@@ -149,81 +146,59 @@ class GetResultGame extends Command
     private function decodeStrGameResult(string $str): array
     {
         $results = [];
-        $pattern = '/AA÷(.*?)¬~/s';
-        if (preg_match_all($pattern, $str, $matches, PREG_SET_ORDER)) {
-            foreach ($matches as $block) {
-                $block = $block[1];
-                // В каждом блоке ищем необходимые данные
-                $code = '';
-                $home_team = '';
-                $home_team_id = '';
-                $away_team = '';
-                $away_team_id = '';
-                $home_goals = '';
-                $away_goals = '';
-                $round = '';
-                $time_start = '';
+        $stage_title = null;
 
-                // Код между AA÷ и ¬
-                if (preg_match('/^([^¬]+)¬/', $block, $m)) {
-                    $code = $m[1];
-                }
+        // Разбиваем по ¬~
+        $blocks = explode('¬~', $str);
+        foreach ($blocks as $block) {
+            // Стадия турнира
+            if (preg_match('/ZA÷([^¬]+)¬/', $block, $m)) {
+                $stage_title = trim($m[1]);
+                continue;
+            }
 
-                // Название команды хозяев между AE÷ и ¬
-                if (preg_match('/AE÷([^¬]+)¬/', $block, $m)) {
-                    $home_team = $m[1];
-                }
+            // Матч
+            if (!str_starts_with($block, 'AA÷')) continue;
 
-                // ID Flashscore между PX÷ и ¬
-                if (preg_match('/PX÷([^¬]+)¬/', $block, $m)) {
-                    $home_team_id = $m[1];
-                }
+            $block = mb_substr($block, 3); // убрать AA÷
 
-                // Название команды гостей между AF÷ и ¬
-                if (preg_match('/AF÷([^¬]+)¬/', $block, $m)) {
-                    $away_team = $m[1];
-                }
+            $code = $round = $home_team = $home_team_id = $away_team = $away_team_id = $time_start = '';
+            $home_goals = $away_goals = null;
 
-                // ID Flashscore между PY÷ и ¬
-                if (preg_match('/PY÷([^¬]+)¬/', $block, $m)) {
-                    $away_team_id = $m[1];
-                }
+            if (preg_match('/^([^¬]+)¬/', $block, $m)) $code = $m[1];
+            if (preg_match('/AE÷([^¬]+)¬/', $block, $m)) $home_team = $m[1];
+            if (preg_match('/PX÷([^¬]+)¬/', $block, $m)) $home_team_id = $m[1];
+            if (preg_match('/AF÷([^¬]+)¬/', $block, $m)) $away_team = $m[1];
+            if (preg_match('/PY÷([^¬]+)¬/', $block, $m)) $away_team_id = $m[1];
+            if (preg_match('/ER÷([^¬]+)¬/', $block, $m)) $round = $m[1];
+            if (preg_match('/AD÷([^¬]+)¬/', $block, $m)) $time_start = $m[1];
+            if (preg_match('/AH÷(\d+)¬/', $block, $m)) $away_goals = $m[1];
+            if (preg_match('/AG÷(\d+)¬/', $block, $m)) $home_goals = $m[1];
 
-                // Название тура между ER÷ и ¬
-                if (preg_match('/ER÷([^¬]+)¬/', $block, $m)) {
-                    $round = $m[1];
-                }
+            $leg_number = 1;
 
-                // Отметка времени начала матча AD÷ и ¬
-                if (preg_match('/AD÷([^¬]+)¬/', $block, $m)) {
-                    $time_start = $m[1];
-                }
-
-                // Количество голов команды хозяев между AH÷ и ¬
-                if (preg_match('/AH÷(\d+)¬/', $block, $m)) {
-                    $away_goals = $m[1];
-                }
-
-                // Количество голов команды гостей между AG÷(\d+)¬
-                if (preg_match('/AG÷(\d+)¬/', $block, $m)) {
-                    $home_goals = $m[1];
-                }
-
-                // Добавляем данные в результаты, если все поля найдены
-                if ($code && $home_team && $away_team && $home_goals !== '' && $away_goals !== '' && $round && $time_start !== '') {
-                    $results[] = [
-                        'code' => $code,
-                        'round' => $round,
-                        'time_start' => $time_start,
-                        'home_team' => $home_team,
-                        'home_team_id' => $home_team_id,
-                        'away_team' => $away_team,
-                        'away_team_id' => $away_team_id,
-                        'home_goals' => $home_goals,
-                        'away_goals' => $away_goals,
-                    ];
+            if (preg_match('/AM÷([^¬]+)¬/', $block, $m)) {
+                $text = $m[1];
+                if (stripos($text, 'Aggregate:') !== false) {
+                    $leg_number = 2;
                 }
             }
+
+            if (!$stage_title || !$round) continue;
+
+            $results[] = [
+                'code' => $code,
+                'round' => $round,
+                'stage_title' => $stage_title,
+                'time_start' => $time_start,
+                'home_team' => $home_team,
+                'home_team_id' => $home_team_id,
+                'away_team' => $away_team,
+                'away_team_id' => $away_team_id,
+                'home_goals' => $home_goals,
+                'away_goals' => $away_goals,
+                'leg_number' => $leg_number,
+            ];
         }
 
         return $results;
@@ -235,44 +210,100 @@ class GetResultGame extends Command
             $clubHome = Club::where('flashscore_id', $game['home_team_id'])->first();
             $clubGuest = Club::where('flashscore_id', $game['away_team_id'])->first();
 
-            if ($clubHome == null || $clubGuest == null) {
-                $this->error("home_team_id = {$game['home_team_id']} | away_team_id = {$game['away_team_id']}");
-                throw new \Exception("clubHome или clubGuest не найден в БД.");
+            if (!$clubHome) {
+                $dataClub = [
+                    'name' => $game['home_team'],
+                    'id' => $game['home_team_id'],
+                    'slug' => null,
+                    'image' => null,
+                ];
+                $clubHome = $this->createClub($dataClub);
+                $this->warn("Клуба {$game['home_team']} не было. Мы его создали");
+//                throw new \Exception("Клуб не найден: " . json_encode($game));
             }
 
-            $gameModel = Game::updateOrCreate(
-                [
-                    'league_season_id' => $leagueSeasonId,
-                    'club_home_id' => $clubHome->id,
-                    'club_guest_id' => $clubGuest->id,
-                    'tour' => $game['round'],
-                    'flashscore_id' => $game['code']
-                ],
-                [
-                    'league_season_id' => $leagueSeasonId,
-                    'club_home_id' => $clubHome->id,
-                    'club_guest_id' => $clubGuest->id,
-                    'tour' => $game['round'],
-                    'time_start' => $game['time_start'],
-                    'flashscore_id' => $game['code']
-                ]
-            );
+            if (!$clubGuest) {
+                $dataClub = [
+                    'name' => $game['away_team'],
+                    'id' => $game['away_team_id'],
+                    'slug' => null,
+                    'image' => null,
+                ];
+                $clubGuest = $this->createClub($dataClub);
+                $this->warn("Клуба {$game['away_team']} не было. Мы его создали");
+//                throw new \Exception("Клуб не найден: " . json_encode($game));
+            }
 
-            GameResult::updateOrCreate(
-                [
-                    'game_id' => $gameModel->id
-                ],
-                [
-                    'game_id' => $gameModel->id,
-                    'home_goals' => $game['home_goals'],
-                    'guest_goals' => $game['away_goals'],
-                ]
-            );
+            $stageTournir = explode(":", $game['stage_title']);
+            $stageTournir = trim($stageTournir[1]);
+            $gameStageModel = $this->gameStages->where('title', $stageTournir)->first();
+            $gameRoundModel = $this->gameRounds->where('title', $game['round'])->first();
 
-            $this->info("Записали игру {$game['code']}");
+            if (!$gameStageModel) {
+                throw new \Exception("Не найдена стадия '{$stageTournir}'. Матч: " . json_encode($game));
+            }
+            if (!$gameRoundModel) {
+                throw new \Exception("Не найден тур '{$game['round']}'. Матч: " . json_encode($game));
+            }
+
+            $gameModel = Game::updateOrCreate([
+                'league_season_id' => $leagueSeasonId,
+                'club_home_id' => $clubHome->id,
+                'club_guest_id' => $clubGuest->id,
+                'flashscore_id' => $game['code']
+            ], [
+                'league_season_id' => $leagueSeasonId,
+                'club_home_id' => $clubHome->id,
+                'club_guest_id' => $clubGuest->id,
+                'flashscore_id' => $game['code'],
+                'time_start' => $game['time_start'],
+                'game_stage_id' => $gameStageModel->id,
+                'game_round_id' => $gameRoundModel->id,
+                'leg_number' => $game['leg_number'],
+            ]);
+
+            GameResult::updateOrCreate([
+                'game_id' => $gameModel->id
+            ], [
+                'game_id' => $gameModel->id,
+                'home_goals' => $game['home_goals'],
+                'guest_goals' => $game['away_goals']
+            ]);
+
+            $this->info("Матч {$game['code']} записан");
         }
+    }
 
-        $this->info("Все игры записали");
+    private function createClub(array $data)
+    {
+        $clubModel = Club::updateOrCreate(
+            [
+                'name' => $data['name'],
+                'flashscore_id' => $data['id'],
+                'country_id' => $this->leagueSeasonModel->league->country->id,
+            ],
+            [
+                'name' => $data['name'],
+                'full_name' => $data['name'],
+                'slug' => $data['slug'],
+                'flashscore_id' => $data['id'],
+                'logo' => $data['image'],
+                'country_id' => $this->leagueSeasonModel->league->country->id,
+            ]
+        );
+
+        $clubLeagueModel = ClubLeague::updateOrCreate(
+            [
+                'club_id' => $clubModel->id,
+                'league_season_id' => $this->leagueSeasonModel->id,
+            ],
+            [
+                'club_id' => $clubModel->id,
+                'league_season_id' => $this->leagueSeasonModel->id,
+            ]
+        );
+
+        return $clubModel;
     }
 
 }

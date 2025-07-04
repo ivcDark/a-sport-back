@@ -43,7 +43,7 @@ class GetClubs extends Command
 
             $this->info('Начинаем выгружать html с параметрами');
 
-            $result = Http::get("https://www.flashscore.com/football/{$leagueModel->country->slug}/{$leagueModel->slug}/standings");
+            $result = Http::get("https://www.flashscore.com/football/{$leagueModel->country->slug}/{$leagueModel->slug}-{$seasonModel->title}/standings");
 
             if ($result->status() == 200) {
                 preg_match('/tournamentId:\s*"([^"]+)"/', $result->body(), $tournamentIdMatch);
@@ -57,6 +57,7 @@ class GetClubs extends Command
                         'x-fsign' => 'SW9D1eZo',
                     ])
                     ->get("https://2.flashscore.ninja/2/x/feed/to_{$tournamentId}_{$tournamentStageId}_1");
+                $this->info("URL = https://2.flashscore.ninja/2/x/feed/to_{$tournamentId}_{$tournamentStageId}_1");
 
                 if ($result->status() == 200) {
 
