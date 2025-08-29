@@ -4,8 +4,11 @@ namespace App\Console\Commands\Parse\Flashscore;
 
 use App\Models\Game;
 use App\Models\GameStatistic;
+use App\Models\League;
+use App\Models\LeagueSeason;
 use App\Models\StatType;
 use App\Models\StatTypeMapping;
+use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -25,6 +28,7 @@ class GetStatisticGame extends Command
      * @var string
      */
     protected $description = 'FlashScore - получение статистики матчей в сезоне';
+    private $leagueSeasonModel;
 
     /**
      * Execute the console command.
@@ -35,26 +39,27 @@ class GetStatisticGame extends Command
 
         try {
             if ($this->option('league_season')) {
-
-                $games = Game::where('league_season_id', $this->option('league_season'))->get();
-
-                if (count($games) == 0) {
-                    throw new \Exception("Игр не найдено в этом сезоне. Проверьте/загрузите игры.");
-                }
-
-                $this->info("Формируем список игр и их статистику");
-
-                $statistics = $this->getGameStatistics($games);
-
-                $this->info("Статистика по матчам готова. Приступаем к insert в БД");
-
-                if ($this->insertStatistics()) {
-                    $this->info('Загрузка статистики игр завершена');
-                }
-
+                $this->leagueSeasonModel = LeagueSeason::where('id', $this->option('league_season'))->first();
+                $games = Game::where('league_season_id', $this->leagueSeasonModel->id)->get();
+                $this->start($games);
             } else {
-                $this->error('Для работы необходимо указать лигу сезона (UUID)');
-                return false;
+                $leagues = League::whereIn('id',
+                    [
+                        '9f4fb238-c393-4a67-b8e4-fcc0fad2e5dd',
+                        '9f4fb238-c898-4bbc-94b9-ec9391bb3013',
+                        '9f4fb238-e235-4e84-bd4a-8e8054aecc08',
+                    ]
+                )
+                    ->get();
+                foreach ($leagues as $league) {
+                    $this->leagueSeasonModel = LeagueSeason::where('league_id', $league->id)->where('season_id', '9f517377-0b23-446e-b440-92865bc5d68a')->first();
+                    $games = Game::where('league_season_id', $this->leagueSeasonModel->id);
+                    if (!$this->option('game') && $this->option('game') != 'all') {
+                        $games = $games->whereBetween('time_start', [Carbon::now()->subMinutes(200)->timestamp, Carbon::now()->addMinutes(200)->timestamp]);
+                    }
+                    $games = $games->get();
+                    $this->start($games);
+                }
             }
 
             DB::commit();
@@ -64,6 +69,24 @@ class GetStatisticGame extends Command
             $this->error("Message: " . $exception->getMessage());
             $this->error("Line: " . $exception->getLine());
             return false;
+        }
+    }
+
+    private function start($games): void
+    {
+        if (count($games) == 0) {
+            $this->error("Нет матчей для LeagueSeason: " . $this->leagueSeasonModel->id . ". Проверьте/загрузите игры.");
+            return;
+        }
+
+        $this->info("Формируем список игр и их статистику");
+
+        $this->getGameStatistics($games);
+
+        $this->info("Статистика по матчам готова. Приступаем к insert в БД");
+
+        if ($this->insertStatistics()) {
+            $this->info('Загрузка статистики игр завершена');
         }
     }
 

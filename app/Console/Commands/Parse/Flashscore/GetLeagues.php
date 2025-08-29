@@ -5,6 +5,7 @@ namespace App\Console\Commands\Parse\Flashscore;
 use App\Models\Country;
 use App\Models\League;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
 class GetLeagues extends Command
@@ -28,80 +29,107 @@ class GetLeagues extends Command
      */
     public function handle()
     {
-        if ($this->option('country')) {
-            $countryModel = Country::where('flashscore_id', $this->option('country'))->first();
+        $startTime = microtime(true);
 
-            $this->info('Начинаем получать лиги');
+        try {
+            DB::beginTransaction();
+            if ($this->option('country')) {
+                $countryModel = Country::where('flashscore_id', $this->option('country'))->first();
 
-            $result = Http::get("https://www.flashscore.com/x/req/m_1_{$countryModel->flashscore_id}");
+                $this->start($countryModel);
 
-            if ($result->status() == 200) {
-                $rawLeagues = explode('~', $result->body());
-                $leagues = [];
-
-                foreach ($rawLeagues as $leagueBlock) {
-                    $name = null;
-                    $slug = null;
-                    $leagueId = null;
-
-                    if (preg_match('/MN÷([^¬]+)/u', $leagueBlock, $matches)) {
-                        $name = $matches[1];
-                    }
-                    if (preg_match('/MU÷([^¬]+)/u', $leagueBlock, $matches)) {
-                        $slug = $matches[1];
-                    }
-                    if (preg_match('/MTI÷([^¬]+)/u', $leagueBlock, $matches)) {
-                        $leagueId = $matches[1];
-                    }
-                    if ($name && $slug && $leagueId) {
-                        $leagues[] = [
-                            'name' => $name,
-                            'slug' => $slug,
-                            'leagueId' => $leagueId,
-                        ];
-
-                        $this->info("Получили лигу: {'name' = $name, 'slug' = $slug, 'leagueId = $leagueId}");
-                    }
-                }
-
-                $this->info("Лиги с сайта получили");
+                $this->info('Загрузка лиг завершена');
             } else {
-                $this->error("Ошибка во время выгрузки данных из Flashscore");
-                $this->error($result->body());
-                return false;
+                foreach (Country::all() as $country) {
+                    $this->start($country);
+                }
+            }
+        } catch (\Exception $exception) {
+            DB::rollBack();
+            $this->error($exception->getMessage());
+        }
+        DB::commit();
+
+        $duration = round(microtime(true) - $startTime, 2); // ⏱️ Конец таймера
+        $this->info("Команда выполнена за {$duration} секунд");
+
+        return 1;
+    }
+
+    private function start(Country $countryModel)
+    {
+        if ($countryModel->name == 'Guinea-Bissau') {
+            $this->warn("У страны нет чемпионатов, продолжаем");
+            return true;
+        }
+
+        $this->info("Начинаем получать лиги для страны {$countryModel->name}");
+
+        $result = Http::
+            timeout(30)
+            ->retry(3, 3000)
+            ->get("https://www.flashscore.com/x/req/m_1_{$countryModel->flashscore_id}");
+
+        if ($result->status() == 200) {
+            $rawLeagues = explode('~', $result->body());
+            $leagues = [];
+
+            foreach ($rawLeagues as $leagueBlock) {
+                $name = null;
+                $slug = null;
+                $leagueId = null;
+
+                if (preg_match('/MN÷([^¬]+)/u', $leagueBlock, $matches)) {
+                    $name = $matches[1];
+                }
+                if (preg_match('/MU÷([^¬]+)/u', $leagueBlock, $matches)) {
+                    $slug = $matches[1];
+                }
+                if (preg_match('/MTI÷([^¬]+)/u', $leagueBlock, $matches)) {
+                    $leagueId = $matches[1];
+                }
+                if ($name && $slug && $leagueId) {
+                    $leagues[] = [
+                        'name' => $name,
+                        'slug' => $slug,
+                        'leagueId' => $leagueId,
+                    ];
+
+                    $this->info("Получили лигу: {'name' = $name, 'slug' = $slug, 'leagueId = $leagueId}");
+                }
             }
 
-
-
-            $this->info("Загружаем лиги в базу");
-
-            if (count($leagues) > 0) {
-                foreach ($leagues as $league) {
-                    $leagueModel = League::create(
-                        [
-                            'name' => $league['name'],
-                            'flashscore_id' => $league['leagueId'],
-                            'country_id' => $countryModel->id,
-                        ],
-                        [
-                            'name' => $league['name'],
-                            'slug' => $league['slug'],
-                            'flashscore_id' => $league['leagueId'],
-                            'country_id' => $countryModel->id,
-                        ]
-                    );
-
-                    $this->info("Страна создана в БД: {'id' = $leagueModel->id}");
-                }
-            } else {
-                $this->error("Массив с лигами пустой");
-                return false;
-            }
-
-            $this->info('Загрузка лиг завершена');
-            return 1;
+            $this->info("Лиги с сайта получили");
         } else {
-            $this->error('Для работы необходимо указать страну (ID из flashscore)');
+            $this->error("Ошибка во время выгрузки данных из Flashscore");
+            $this->error($result->body());
+            return false;
+        }
+
+
+
+        $this->info("Загружаем лиги в базу");
+
+        if (count($leagues) > 0) {
+            foreach ($leagues as $league) {
+                $leagueModel = League::updateOrCreate(
+                    [
+                        'name' => $league['name'],
+                        'flashscore_id' => $league['leagueId'],
+                        'country_id' => $countryModel->id,
+                    ],
+                    [
+                        'name' => $league['name'],
+                        'slug' => $league['slug'],
+                        'flashscore_id' => $league['leagueId'],
+                        'country_id' => $countryModel->id,
+                    ]
+                );
+
+                $this->info("Лига создана в БД: {'id' = $leagueModel->id}");
+            }
+        } else {
+            $this->error("Массив с лигами пустой");
             return false;
         }
     }

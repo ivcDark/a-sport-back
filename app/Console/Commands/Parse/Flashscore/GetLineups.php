@@ -9,6 +9,7 @@ use App\Models\ExternalMapping;
 use App\Models\Game;
 use App\Models\GamePlayer;
 use App\Models\League;
+use App\Models\LeagueSeason;
 use App\Models\Player;
 use App\Models\PlayerClub;
 use Carbon\Carbon;
@@ -26,7 +27,7 @@ class GetLineups extends Command
      *
      * @var string
      */
-    protected $signature = 'flashscore:get-lineups {--league_season= : ID лиги сезона}';
+    protected $signature = 'flashscore:get-lineups {--league_season= : ID лиги сезона} {--game= : (all - Для всех матчей)}';
 
     /**
      * The console command description.
@@ -34,6 +35,7 @@ class GetLineups extends Command
      * @var string
      */
     protected $description = 'FlashScore - получение составов на матч';
+    private $leagueSeasonModel;
 
     /**
      * Execute the console command.
@@ -44,27 +46,30 @@ class GetLineups extends Command
 
         try {
             if ($this->option('league_season')) {
-
-                $games = Game::where('league_season_id', $this->option('league_season'))->get();
-
-                if (count($games) == 0) {
-                    throw new \Exception("Игр не найдено в этом сезоне. Проверьте/загрузите игры.");
-                }
-
-                $this->info("Формируем список Lineups");
-
-//                $this->getGameLineups($games);
-
-                $this->info("Составы по матчам готовы. Приступаем к insert в БД");
-
-                if ($this->insertData($games)) {
-                    $this->info('Загрузка составов завершена');
-                }
-
+                $this->leagueSeasonModel = LeagueSeason::where('league_id', $this->option('league_season'))->first();
+                $games = Game::where('league_season_id', $this->leagueSeasonModel->id)->get();
+                $this->start($games);
             } else {
-                $this->error('Для работы необходимо указать лигу сезона (UUID)');
-                return false;
+                $leagues = League::whereIn('id',
+                    [
+                        '9f4fb238-c393-4a67-b8e4-fcc0fad2e5dd',
+                        '9f4fb238-c898-4bbc-94b9-ec9391bb3013',
+                        '9f4fb238-e235-4e84-bd4a-8e8054aecc08',
+                    ]
+                )
+                    ->get();
+                foreach ($leagues as $league) {
+                    $this->leagueSeasonModel = LeagueSeason::where('league_id', $league->id)->where('season_id', '9f517377-0b23-446e-b440-92865bc5d68a')->first();
+                    $games = Game::where('league_season_id', $this->leagueSeasonModel->id);
+                    if (!$this->option('game') && $this->option('game') != 'all') {
+                        $games = $games->whereBetween('time_start', [Carbon::now()->subMinutes(200)->timestamp, Carbon::now()->addMinutes(200)->timestamp]);
+                    }
+                    $games = $games->get();
+                    $this->start($games);
+                }
             }
+
+            $this->info("По всем матчам прошли, финиш");
 
             DB::commit();
             return 1;
@@ -73,6 +78,24 @@ class GetLineups extends Command
             $this->error("Message: " . $exception->getMessage());
             $this->error("Line: " . $exception->getLine());
             return false;
+        }
+    }
+
+    private function start($games): void
+    {
+        if (count($games) == 0) {
+            $this->error("Нет матчей для LeagueSeason: " . $this->leagueSeasonModel->id . ". Проверьте/загрузите игры.");
+            return;
+        }
+
+        $this->info("Формируем список игр и их статистику");
+
+        $this->getGameStatistics($games);
+
+        $this->info("Статистика по матчам готова. Приступаем к insert в БД");
+
+        if ($this->insertStatistics()) {
+            $this->info('Загрузка статистики игр завершена');
         }
     }
 
@@ -107,16 +130,23 @@ class GetLineups extends Command
     private function insertData($games): bool
     {
         foreach ($games as $game) {
+            $this->info("Файл: {$game->flashscore_id}");
             $json = Storage::get("lineups/lineups_{$game->flashscore_id}.json");
             $data = json_decode($json, true);
 
             foreach ($data as $club) {
+                if (count($club['lineup']['players']) == 0 || count($club['lineup']['groups']) == 0) {
+                    continue;
+                }
                 $clubModel = $club['type']['side'] == 'HOME' ? $game->clubHome : $game->clubGuest;
                 $players = $club['lineup']['players'];
                 $groupStarting = $club['lineup']['groups'][0]['playerIds'];
                 $groupSubstitutes = $club['lineup']['groups'][1]['playerIds'];
 
                 foreach ($players as $player) {
+                    if ($player['participantId'] == null) {
+                        continue;
+                    }
                     if (array_search($player['id'], $groupStarting) !== false) {
                         $group = "Starting";
                     } elseif (array_search($player['id'], $groupSubstitutes) !== false) {
@@ -131,9 +161,9 @@ class GetLineups extends Command
                     }
 
                     $playerModel = Player::where('flashscore_id', $player['id'])->first();
+                    $dataNewPlayer = $this->getDataPlayerHttp($player['participant']['url'], $player['id']);
 
                     if ($playerModel == null) {
-                        $dataNewPlayer = $this->getDataPlayerHttp($player['participant']['url'], $player['id']);
                         $playerModel = $this->setPlayerToDb($dataNewPlayer);
                         if ($playerModel == null) {
                             throw new Exception("Не удалось создать футболиста, которого нет в БД - ID '{$player['id']}' ({$player['listName']})");
@@ -145,6 +175,7 @@ class GetLineups extends Command
                             $playerClub->in_club = false;
                             $playerClub->save();
                         }
+
                         PlayerClub::updateOrCreate(
                             [
                                 'player_id' => $playerModel->id,
@@ -156,6 +187,7 @@ class GetLineups extends Command
                                 'in_club' => $dataNewPlayer['team_id'] == $clubModel->flashscore_id,
                             ]
                         );
+
 
                         $this->info("Добавили связь игрока с клубом");
                     }

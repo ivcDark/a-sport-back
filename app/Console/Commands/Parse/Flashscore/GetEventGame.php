@@ -5,6 +5,8 @@ namespace App\Console\Commands\Parse\Flashscore;
 use App\Models\Country;
 use App\Models\Event;
 use App\Models\Game;
+use App\Models\League;
+use App\Models\LeagueSeason;
 use App\Models\Player;
 use App\Models\PlayerClub;
 use Carbon\Carbon;
@@ -21,7 +23,7 @@ class GetEventGame extends Command
      *
      * @var string
      */
-    protected $signature = 'flashscore:get-event-game {--league_season= : ID лиги сезона}';
+    protected $signature = 'flashscore:get-event-game {--league_season= : ID лиги сезона} {--game= : (all - Для всех матчей)}';
 
     /**
      * The console command description.
@@ -29,6 +31,7 @@ class GetEventGame extends Command
      * @var string
      */
     protected $description = 'FlashScore - получение событий матчей в сезоне';
+    private $leagueSeasonModel;
 
     /**
      * Execute the console command.
@@ -39,27 +42,27 @@ class GetEventGame extends Command
 
         try {
             if ($this->option('league_season')) {
-
-                $games = Game::where('league_season_id', $this->option('league_season'))->get();
-//                $games = Game::where('flashscore_id', '4jnwOIcM')->get();
-
-                if (count($games) == 0) {
-                    throw new \Exception("Игр не найдено в этом сезоне. Проверьте/загрузите игры.");
-                }
-
-                $this->info("Формируем массив с событиями в матчах и пишем в файлы");
-
-//                $this->getGameEvents($games);
-
-                $this->info("События по матчам готовы. Приступаем к insert в БД");
-
-                if ($this->insertData($games)) {
-                    $this->info('Загрузка событий игр завершена');
-                }
-
+                $this->leagueSeasonModel = LeagueSeason::where('league_id', $this->option('league_season'))->first();
+                $games = Game::where('league_season_id', $this->leagueSeasonModel->id)->get();
+                $this->start($games);
             } else {
-                $this->error('Для работы необходимо указать лигу сезона (UUID)');
-                return false;
+                $leagues = League::whereIn('id',
+                    [
+                        '9f4fb238-c393-4a67-b8e4-fcc0fad2e5dd',
+                        '9f4fb238-c898-4bbc-94b9-ec9391bb3013',
+                        '9f4fb238-e235-4e84-bd4a-8e8054aecc08',
+                    ]
+                )
+                    ->get();
+                foreach ($leagues as $league) {
+                    $this->leagueSeasonModel = LeagueSeason::where('league_id', $league->id)->where('season_id', '9f517377-0b23-446e-b440-92865bc5d68a')->first();
+                    $games = Game::where('league_season_id', $this->leagueSeasonModel->id);
+                    if (!$this->option('game') && $this->option('game') != 'all') {
+                        $games = $games->whereBetween('time_start', [Carbon::now()->subMinutes(200)->timestamp, Carbon::now()->addMinutes(200)->timestamp]);
+                    }
+                    $games = $games->get();
+                    $this->start($games);
+                }
             }
 
             DB::commit();
@@ -69,6 +72,24 @@ class GetEventGame extends Command
             $this->error("Message: " . $exception->getMessage());
             $this->error("Line: " . $exception->getLine());
             return false;
+        }
+    }
+
+    private function start($games): void
+    {
+        if (count($games) == 0) {
+            $this->error("Нет матчей для LeagueSeason: " . $this->leagueSeasonModel->id . ". Проверьте/загрузите игры.");
+            return;
+        }
+
+        $this->info("Формируем массив с событиями в матчах и пишем в файлы");
+
+        $this->getGameEvents($games);
+
+        $this->info("События по матчам готовы. Приступаем к insert в БД");
+
+        if ($this->insertData($games)) {
+            $this->info('Загрузка событий игр завершена');
         }
     }
 
@@ -170,7 +191,13 @@ class GetEventGame extends Command
                         $playerClub->in_club = false;
                         $playerClub->save();
                     }
-                    PlayerClub::updateOrCreate(
+
+                    $this->info("Добавили связь игрока с клубом");
+                }
+
+                $club = PlayerClub::where('player_id', $player->id)->first();
+                if ($club == null) {
+                    $club = PlayerClub::updateOrCreate(
                         [
                             'player_id' => $player->id,
                             'club_id' => $game->club_home_id,
@@ -178,16 +205,11 @@ class GetEventGame extends Command
                         [
                             'player_id' => $player->id,
                             'club_id' => $game->club_home_id,
-                            'in_club' => $dataNewPlayer['team_id'] == $game->clubHome->flashscore_id,
+                            'in_club' => false,
                         ]
                     );
-
-                    $this->info("Добавили связь игрока с клубом");
-                }
-
-                $club = PlayerClub::where('player_id', $player->id)->first();
-                if ($club == null) {
-                    throw new \Exception("Не нашли клуб у игрока {$item['IM_1']}");
+//                    throw new \Exception("Не нашли клуб у игрока {$item['IM_1']}");
+                    $this->warn("Не нашли клуб у игрока {$item['IM_1']}");
                 }
 
                 $type = null;
@@ -288,7 +310,19 @@ class GetEventGame extends Command
 
                     $club = PlayerClub::where('player_id', $player->id)->first();
                     if ($club == null) {
-                        throw new \Exception("Не нашли клуб у игрока {$item['IM_2']}");
+                        $club = PlayerClub::updateOrCreate(
+                            [
+                                'player_id' => $player->id,
+                                'club_id' => $game->club_home_id,
+                            ],
+                            [
+                                'player_id' => $player->id,
+                                'club_id' => $game->club_home_id,
+                                'in_club' => false,
+                            ]
+                        );
+//                        throw new \Exception("Не нашли клуб у игрока {$item['IM_2']}");
+                        $this->warn("Не нашли клуб у игрока {$item['IM_2']}");
                     }
 
                     if ($item['IK_2'] == 'Substitution - Out') {

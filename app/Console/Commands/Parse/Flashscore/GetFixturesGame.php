@@ -19,21 +19,21 @@ use Illuminate\Support\Facades\Http;
 use Symfony\Component\Console\Command\Command as CommandAlias;
 use Symfony\Component\DomCrawler\Crawler;
 
-class GetResultGame extends Command
+class GetFixturesGame extends Command
 {
-    protected $signature = 'flashscore:get-game-result {--league_season= : ID лиги сезона}';
+    protected $signature = 'flashscore:get-game-fixtures {--league_season= : ID лиги сезона}';
 
-    protected $description = 'FlashScore - получение результатов в лиге';
+    protected $description = 'FlashScore - получение предстоящих матчей в лиге';
     private $gameStages;
     private $gameRounds;
     private $leagueSeasonModel;
 
     public function handle()
     {
+        DB::beginTransaction();
+
         $this->gameStages = GameStage::all();
         $this->gameRounds = GameRound::all();
-
-        DB::beginTransaction();
 
         try {
             if ($this->option('league_season')) {
@@ -41,7 +41,7 @@ class GetResultGame extends Command
 
                 $this->leagueSeasonModel = LeagueSeason::where('id', $this->option('league_season'))->first();
                 $this->info("Получаем список матчей");
-                $games = $this->getGameResults();
+                $games = $this->getGameFixtures();
                 $this->info("Вставляем данные в БД");
                 $this->insertGameResult($games, $this->leagueSeasonModel->id);
             } else {
@@ -57,7 +57,7 @@ class GetResultGame extends Command
                 foreach ($leagues as $leagueModel) {
                     $this->leagueSeasonModel = LeagueSeason::where('league_id', $leagueModel->id)->where('season_id', '9f517377-0b23-446e-b440-92865bc5d68a')->first();
                     $this->info("Получаем список матчей");
-                    $games = $this->getGameResults();
+                    $games = $this->getGameFixtures();
                     $this->info("Вставляем данные в БД");
                     $this->insertGameResult($games, $this->leagueSeasonModel->id);
                 }
@@ -74,7 +74,7 @@ class GetResultGame extends Command
         }
     }
 
-    private function getGameResults(): array
+    private function getGameFixtures(): array
     {
         $this->info("Отправляем запрос для получения seasonId на Flashscore");
 
@@ -82,7 +82,7 @@ class GetResultGame extends Command
         $leagueSlug = $this->leagueSeasonModel->league->slug;
         $seasonTitle = $this->leagueSeasonModel->season->title;
 
-        $url = "https://www.flashscore.com/football/$countrySlug/$leagueSlug-$seasonTitle/results/";
+        $url = "https://www.flashscore.com/football/$countrySlug/$leagueSlug-$seasonTitle/fixtures/";
         $result = Http::withoutVerifying()
             ->timeout(30)
             ->retry(3, 3000)
@@ -95,7 +95,7 @@ class GetResultGame extends Command
 
         $crawler = new Crawler($result->body());
         $scriptContent = $crawler->filter('script')->reduce(function (Crawler $node, $i) {
-            return strpos($node->text(), "cjs.initialFeeds['results']") !== false;
+            return strpos($node->text(), "cjs.initialFeeds['fixtures']") !== false;
         })->text();
 
         $seasonIdPattern = "/seasonId\s*:\s*(\d+)/";
@@ -104,18 +104,18 @@ class GetResultGame extends Command
 
         $this->info("ID получили: {$seasonId}");
 
-        $pattern = "/cjs\.initialFeeds\['results'\]\s*=\s*\{\s*data:\s*`(.+?)`/s";
+        $pattern = "/cjs\.initialFeeds\['fixtures'\]\s*=\s*\{\s*data:\s*`(.+?)`/s";
         preg_match($pattern, $scriptContent, $matches);
 
-        $this->info("Декодируем результаты матчей с первой страницы");
+        $this->info("Декодируем список матчей с первой страницы");
 
-        $results = $this->decodeStrGameResult($matches[1]);
+        $results = $this->decodeStrGameFixtures($matches[1]);
 
         $this->info("Успешно! Теперь будем выгружать и декодировать матчи с других страниц");
 
         for ($i = 1; $i <= 4; $i++) {
             $this->info("Отправим запрос на страницу $i");
-            $urlGames = "https://2.flashscore.ninja/2/x/feed/tr_1_{$this->leagueSeasonModel->league->country->flashscore_id}_{$this->leagueSeasonModel->league->flashscore_id}_{$seasonId}_{$i}_4_en_1";
+            $urlGames = "https://2.flashscore.ninja/2/x/feed/tf_1_{$this->leagueSeasonModel->league->country->flashscore_id}_{$this->leagueSeasonModel->league->flashscore_id}_{$seasonId}_{$i}_4_en_1";
             $result = Http::withoutVerifying()
                 ->withHeaders([
                     "User-Agent" => "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
@@ -146,7 +146,7 @@ class GetResultGame extends Command
             $this->info("Получили результат со страницы $i");
             $this->info("Декодируем результат со страницы $i");
 
-            $results = array_merge($results, $this->decodeStrGameResult($result->body()));
+            $results = array_merge($results, $this->decodeStrGameFixtures($result->body()));
 
             $this->info("Декодирование завершено");
         }
@@ -154,7 +154,7 @@ class GetResultGame extends Command
         return $results;
     }
 
-    private function decodeStrGameResult(string $str): array
+    private function decodeStrGameFixtures(string $str): array
     {
         $results = [];
         $stage_title = null;
@@ -174,7 +174,6 @@ class GetResultGame extends Command
             $block = mb_substr($block, 3); // убрать AA÷
 
             $code = $round = $home_team = $home_team_id = $away_team = $away_team_id = $time_start = '';
-            $home_goals = $away_goals = null;
 
             if (preg_match('/^([^¬]+)¬/', $block, $m)) $code = $m[1];
             if (preg_match('/AE÷([^¬]+)¬/', $block, $m)) $home_team = $m[1];
@@ -183,8 +182,6 @@ class GetResultGame extends Command
             if (preg_match('/PY÷([^¬]+)¬/', $block, $m)) $away_team_id = $m[1];
             if (preg_match('/ER÷([^¬]+)¬/', $block, $m)) $round = $m[1];
             if (preg_match('/AD÷([^¬]+)¬/', $block, $m)) $time_start = $m[1];
-            if (preg_match('/AH÷(\d+)¬/', $block, $m)) $away_goals = $m[1];
-            if (preg_match('/AG÷(\d+)¬/', $block, $m)) $home_goals = $m[1];
 
             $leg_number = 1;
 
@@ -197,8 +194,6 @@ class GetResultGame extends Command
 
             if (!$stage_title || !$round) continue;
 
-            if ($home_goals == null && $away_goals == null) continue;
-
             $results[] = [
                 'code' => $code,
                 'round' => $round,
@@ -208,8 +203,6 @@ class GetResultGame extends Command
                 'home_team_id' => $home_team_id,
                 'away_team' => $away_team,
                 'away_team_id' => $away_team_id,
-                'home_goals' => $home_goals,
-                'away_goals' => $away_goals,
                 'leg_number' => $leg_number,
             ];
         }
@@ -273,14 +266,6 @@ class GetResultGame extends Command
                 'game_stage_id' => $gameStageModel->id,
                 'game_round_id' => $gameRoundModel->id,
                 'leg_number' => $game['leg_number'],
-            ]);
-
-            GameResult::updateOrCreate([
-                'game_id' => $gameModel->id
-            ], [
-                'game_id' => $gameModel->id,
-                'home_goals' => $game['home_goals'],
-                'guest_goals' => $game['away_goals']
             ]);
 
             $this->info("Матч {$game['code']} записан");
