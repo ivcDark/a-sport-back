@@ -20,7 +20,7 @@ class GetStatisticGame extends Command
      *
      * @var string
      */
-    protected $signature = 'flashscore:get-game-statistic {--league_season= : ID лиги сезона}';
+    protected $signature = 'flashscore:get-game-statistic {--league_season= : ID лиги сезона} {--game= : (all - Для всех матчей)}';
 
     /**
      * The console command description.
