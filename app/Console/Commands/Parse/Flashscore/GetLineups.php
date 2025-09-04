@@ -90,18 +90,17 @@ class GetLineups extends Command
 
         $this->info("Формируем список игр и их статистику");
 
-        $data = $this->getGameLineups($games);
+        $this->getGameLineups($games);
 
         $this->info("Статистика по матчам готова. Приступаем к insert в БД");
 
-        if ($this->insertData($data)) {
+        if ($this->insertData($games)) {
             $this->info('Загрузка статистики игр завершена');
         }
     }
 
-    private function getGameLineups($games): array
+    private function getGameLineups($games)
     {
-        $lineups = [];
         foreach ($games as $game) {
             $result = Http::
                 timeout(30)
@@ -124,7 +123,6 @@ class GetLineups extends Command
         }
 
         $this->info("Записали всю информацию в файл");
-        return $lineups;
     }
 
     private function insertData($games): bool
