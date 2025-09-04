@@ -90,11 +90,11 @@ class GetLineups extends Command
 
         $this->info("Формируем список игр и их статистику");
 
-        $this->getGameStatistics($games);
+        $data = $this->getGameLineups($games);
 
         $this->info("Статистика по матчам готова. Приступаем к insert в БД");
 
-        if ($this->insertStatistics()) {
+        if ($this->insertData($data)) {
             $this->info('Загрузка статистики игр завершена');
         }
     }
