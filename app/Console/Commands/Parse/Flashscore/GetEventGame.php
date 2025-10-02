@@ -109,7 +109,7 @@ class GetEventGame extends Command
 
             if ($result->status() == 200) {
                 // Разделение строки на секции по таймам
-                $sections = preg_split('/AC÷(1st Half|2nd Half)¬/', $result->body(), -1, PREG_SPLIT_DELIM_CAPTURE);
+                $sections = preg_split('/AC÷(1st Half|2nd Half|Penalties)¬/', $result->body(), -1, PREG_SPLIT_DELIM_CAPTURE);
                 $current_period = null;
 
                 foreach ($sections as $section) {
