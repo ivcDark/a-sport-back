@@ -113,7 +113,7 @@ class GetEventGame extends Command
                 $current_period = null;
 
                 foreach ($sections as $section) {
-                    if (preg_match('/(1st Half|2nd Half)/', $section, $match)) {
+                    if (preg_match('/(1st Half|2nd Half|Penalties)/', $section, $match)) {
                         $current_period = $match[1];
                     } elseif ($current_period !== null) {
                         preg_match_all('/III÷(.*?)¬.*?IA÷(.*?)¬IB÷(.*?)¬(.*?)¬~/', $section, $matches, PREG_SET_ORDER);
@@ -168,7 +168,7 @@ class GetEventGame extends Command
     private function insertData($games): bool
     {
         foreach ($games as $game) {
-            Event::where('game_id', $game->id)->delete();
+            Event::where('game_id', $game->id)->forceDelete();
             $this->info("Будем записывать игру {$game->flashscore_id}");
             $json = Storage::get("events/events_{$game->flashscore_id}.json");
             $data = json_decode($json, true);
