@@ -168,6 +168,7 @@ class GetEventGame extends Command
     private function insertData($games): bool
     {
         foreach ($games as $game) {
+            Event::where('game_id', $game->id)->delete();
             $this->info("Будем записывать игру {$game->flashscore_id}");
             $json = Storage::get("events/events_{$game->flashscore_id}.json");
             $data = json_decode($json, true);
