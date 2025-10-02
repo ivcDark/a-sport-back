@@ -183,8 +183,8 @@ class GetResultGame extends Command
             if (preg_match('/PY÷([^¬]+)¬/', $block, $m)) $away_team_id = $m[1];
             if (preg_match('/ER÷([^¬]+)¬/', $block, $m)) $round = $m[1];
             if (preg_match('/AD÷([^¬]+)¬/', $block, $m)) $time_start = $m[1];
-            if (preg_match('/AH÷(\d+)¬/', $block, $m)) $away_goals = $m[1];
-            if (preg_match('/AG÷(\d+)¬/', $block, $m)) $home_goals = $m[1];
+            if (preg_match('/AU÷(\d+)¬/', $block, $m)) $away_goals = $m[1];
+            if (preg_match('/AT÷(\d+)¬/', $block, $m)) $home_goals = $m[1];
 
             $leg_number = 1;
 
